@@ -1,0 +1,158 @@
+<?php
+
+declare(strict_types=1);
+
+use AaiEduHr\HeartPhrameModuleAuth\Service\AuthUserService;
+use AaiEduHr\HeartPhrameModuleEditorHtml\Service\EditorPublishedVersionProviderInterface;
+use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
+use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceAccessService;
+use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceConfig;
+use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceRepository;
+use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceWorkflowService;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Command\HpWorkspaceSearchCommand;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller\WorkspaceSearchController;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller\WorkspaceSearchSettingsController;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Listener\SynchronizeWorkspaceSearchIndex;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchConfig;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchEditorBridge;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchMenuIntegration;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchModuleViewRenderer;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchService;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchTopMenuControl;
+use HeartPhrame\Alert\AlertHandler;
+use HeartPhrame\Config\ConfigInterface;
+use HeartPhrame\Http\ResponseFactory;
+use HeartPhrame\Localization\TranslatorInterface;
+use HeartPhrame\Routing\UrlGenerator;
+use HeartPhrame\View\CsrfHandler;
+use Psr\Container\ContainerInterface;
+
+$services = [
+    WorkspaceSearchConfig::class => static fn(ContainerInterface $container): WorkspaceSearchConfig =>
+        new WorkspaceSearchConfig($container->get(ConfigInterface::class), dirname(__DIR__)),
+    WorkspaceSearchEditorBridge::class => static fn(ContainerInterface $container): WorkspaceSearchEditorBridge =>
+        new WorkspaceSearchEditorBridge($container->get(EditorPublishedVersionProviderInterface::class)),
+    WorkspaceSearchIndexer::class => static fn(ContainerInterface $container): WorkspaceSearchIndexer =>
+        new WorkspaceSearchIndexer(
+            $container->get(Database::class),
+            $container->get(WorkspaceRepository::class),
+            $container->get(WorkspaceWorkflowService::class),
+            $container->get(WorkspaceSearchEditorBridge::class),
+            $container->get(AuthUserService::class),
+            $container->get(WorkspaceSearchConfig::class),
+        ),
+    WorkspaceSearchService::class => static fn(ContainerInterface $container): WorkspaceSearchService =>
+        new WorkspaceSearchService(
+            $container->get(Database::class),
+            $container->get(WorkspaceAccessService::class),
+            $container->get(WorkspaceConfig::class),
+            $container->get(WorkspaceSearchConfig::class),
+            $container->get(WorkspaceSearchIndexer::class),
+            $container->get(UrlGenerator::class),
+        ),
+    WorkspaceSearchModuleViewRenderer::class =>
+        static fn(ContainerInterface $container): WorkspaceSearchModuleViewRenderer =>
+            new WorkspaceSearchModuleViewRenderer($container->get(ResponseFactory::class)),
+    WorkspaceSearchTopMenuControl::class =>
+        static fn(ContainerInterface $container): WorkspaceSearchTopMenuControl =>
+            new WorkspaceSearchTopMenuControl(
+                $container->get(UrlGenerator::class),
+                $container->get(TranslatorInterface::class),
+            ),
+    WorkspaceSearchController::class => static fn(ContainerInterface $container): WorkspaceSearchController =>
+        new WorkspaceSearchController(
+            $container->get(WorkspaceSearchModuleViewRenderer::class),
+            $container->get(ResponseFactory::class),
+            $container->get(WorkspaceSearchService::class),
+            $container->get(WorkspaceSearchConfig::class),
+            $container->get(WorkspaceAccessService::class),
+            $container->get(WorkspaceConfig::class),
+            $container->get(TranslatorInterface::class),
+            $container->get(UrlGenerator::class),
+        ),
+    WorkspaceSearchSettingsController::class =>
+        static fn(ContainerInterface $container): WorkspaceSearchSettingsController =>
+            new WorkspaceSearchSettingsController(
+                $container->get(WorkspaceSearchModuleViewRenderer::class),
+                $container->get(ResponseFactory::class),
+                $container->get(WorkspaceSearchIndexer::class),
+                $container->get(WorkspaceRepository::class),
+                $container->get(WorkspaceAccessService::class),
+                $container->get(UrlGenerator::class),
+                $container->get(AlertHandler::class),
+                $container->get(CsrfHandler::class),
+            ),
+    WorkspaceSearchMenuIntegration::class =>
+        static fn(ContainerInterface $container): WorkspaceSearchMenuIntegration =>
+            new WorkspaceSearchMenuIntegration($container),
+    SynchronizeWorkspaceSearchIndex::class =>
+        static fn(ContainerInterface $container): SynchronizeWorkspaceSearchIndex =>
+            new SynchronizeWorkspaceSearchIndex($container->get(WorkspaceSearchIndexer::class)),
+    HpWorkspaceSearchCommand::class => static fn(ContainerInterface $container): HpWorkspaceSearchCommand =>
+        new HpWorkspaceSearchCommand(
+            $container->get(ConfigInterface::class),
+            $container->get(WorkspaceSearchIndexer::class),
+        ),
+];
+
+if (class_exists(\AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBackupProvider::class)) {
+    $services['heartphrame.backup.provider.workspace-search-site'] =
+        static fn(ContainerInterface $container): \AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBackupProvider =>
+            new \AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBackupProvider(
+                new \AaiEduHr\HeartPhrameModuleBackup\Value\BackupProviderMetadata(
+                    'workspace-search-site',
+                    \AaiEduHr\HeartPhrameModuleWorkspaceSearch\ModuleWorkspaceSearch::PACKAGE_NAME,
+                    1,
+                    ['hr' => 'Obnova indeksa pretrage sitea', 'en' => 'Site search-index rebuild'],
+                    ['workspace', 'editor-html'],
+                    [
+                        \AaiEduHr\HeartPhrameModuleBackup\Value\BackupScope::SITE,
+                        \AaiEduHr\HeartPhrameModuleBackup\Value\BackupScope::COMPONENT,
+                    ],
+                    true,
+                    false,
+                    [\AaiEduHr\HeartPhrameModuleWorkspace\ModuleWorkspace::PACKAGE_NAME],
+                    true,
+                ),
+                static function (\AaiEduHr\HeartPhrameModuleBackup\Value\BackupImportContext $context) use ($container): void {
+                    // HR: Indeks je izveden podatak i uvijek se gradi iz vraćenog sadržaja.
+                    // EN: The index is derived data and is always rebuilt from restored content.
+                    $container->get(WorkspaceSearchIndexer::class)->rebuild(true);
+                },
+            );
+
+    $services['heartphrame.backup.provider.workspace-search-workspace'] =
+        static fn(ContainerInterface $container): \AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBackupProvider =>
+            new \AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBackupProvider(
+                new \AaiEduHr\HeartPhrameModuleBackup\Value\BackupProviderMetadata(
+                    'workspace-search-workspace',
+                    \AaiEduHr\HeartPhrameModuleWorkspaceSearch\ModuleWorkspaceSearch::PACKAGE_NAME,
+                    1,
+                    ['hr' => 'Obnova indeksa odabranog područja', 'en' => 'Selected-workspace index rebuild'],
+                    ['workspace-scope', 'editor-html-workspace'],
+                    [\AaiEduHr\HeartPhrameModuleBackup\Value\BackupScope::WORKSPACE],
+                    true,
+                    false,
+                    [\AaiEduHr\HeartPhrameModuleWorkspace\ModuleWorkspace::PACKAGE_NAME],
+                    true,
+                ),
+                static function (\AaiEduHr\HeartPhrameModuleBackup\Value\BackupImportContext $context) use ($container): void {
+                    // HR: Scoped restore može promijeniti slug područja. Workspace
+                    // provider zato objavljuje ciljnu mapu po stvarnom target slugu.
+                    // EN: A scoped restore may change the workspace slug. The Workspace
+                    // provider therefore publishes a mapping under the actual target slug.
+                    $targetSlug = trim((string)(
+                        $context->optionsFor('workspace-scope')['target_slug']
+                        ?? $context->scope->identifier
+                    ));
+                    $workspaceId = $context->state->require('workspace.id-by-slug', $targetSlug);
+                    $container->get(WorkspaceSearchIndexer::class)->rebuild(
+                        true,
+                        is_numeric($workspaceId) ? (int)$workspaceId : null,
+                    );
+                },
+            );
+}
+
+return $services;

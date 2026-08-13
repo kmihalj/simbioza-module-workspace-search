@@ -1,0 +1,30 @@
+.hph-workspace-search {
+    position: relative;
+    z-index: 2;
+}
+
+.hph-workspace-search__form,
+.hph-workspace-search__result {
+    background: var(--hph-surface, var(--bs-body-bg));
+    color: var(--hph-surface-text, var(--bs-body-color));
+    border-color: var(--hph-border-color, var(--bs-border-color));
+}
+
+.hph-workspace-search__result mark {
+    background: color-mix(in srgb, var(--hph-link-color, #0d6efd) 24%, transparent);
+    color: inherit;
+    padding: 0 .08em;
+}
+
+.hph-workspace-search-control {
+    min-width: min(20rem, 40vw);
+    margin: .25rem .75rem;
+}
+
+@media (max-width: 991.98px) {
+    .hph-workspace-search-control {
+        min-width: 0;
+        width: 100%;
+        margin: .75rem 0;
+    }
+}

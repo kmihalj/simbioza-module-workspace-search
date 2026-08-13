@@ -1,0 +1,9 @@
+/.DS_Store
+/**/.DS_Store
+/build/
+/composer.lock
+/composer.local.json
+/composer.local.lock
+/vendor/
+/.phpunit.cache/
+/.phpunit.result.cache
