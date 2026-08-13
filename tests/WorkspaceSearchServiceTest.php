@@ -60,10 +60,11 @@ final class WorkspaceSearchServiceTest extends TestCase
         ]);
         $this->database = new Database($config, $helper);
         $this->runMigration(
-            dirname(__DIR__, 2) . '/heartphrame-module-auth/resources/migrations/initial_auth_schema.php',
+            dirname(__DIR__) . '/vendor/aaieduhr/heartphrame-module-auth/resources/migrations/initial_auth_schema.php',
         );
         $this->runMigration(
-            dirname(__DIR__, 2) . '/heartphrame-module-workspace/resources/migrations/initial_workspace_schema.php',
+            dirname(__DIR__)
+            . '/vendor/aaieduhr/heartphrame-module-workspace/resources/migrations/initial_workspace_schema.php',
         );
         $this->runMigration(dirname(__DIR__) . '/resources/migrations/initial_workspace_search_schema.php');
         foreach ([1, 2, 3] as $userId) {
@@ -81,7 +82,10 @@ final class WorkspaceSearchServiceTest extends TestCase
 
         $this->repository = new WorkspaceRepository($this->database);
         $workflow = new WorkspaceWorkflowService($this->repository);
-        $workspaceConfig = new WorkspaceConfig($config, dirname(__DIR__, 2) . '/heartphrame-module-workspace');
+        $workspaceConfig = new WorkspaceConfig(
+            $config,
+            dirname(__DIR__) . '/vendor/aaieduhr/heartphrame-module-workspace',
+        );
         $access = new WorkspaceAccessService($this->repository, $this->authnHandler(), $workspaceConfig, $workflow);
         $provider = new class ($this->versions) implements EditorPublishedVersionProviderInterface {
             /** @param array<string, EditorDocumentVersion> $versions */
