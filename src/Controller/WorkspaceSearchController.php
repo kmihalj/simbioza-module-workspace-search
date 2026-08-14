@@ -6,14 +6,17 @@ namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller;
 
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceAccessService;
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceConfig;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Event\WorkspaceSearchPerformed;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchConfig;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchModuleViewRenderer;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchService;
 use HeartPhrame\Http\ResponseFactory;
 use HeartPhrame\Localization\TranslatorInterface;
 use HeartPhrame\Routing\UrlGenerator;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * HR: HTTP sučelje javne, ali uvijek ACL-svjesne Workspace pretrage.
@@ -34,6 +37,8 @@ final readonly class WorkspaceSearchController
         private WorkspaceConfig $workspaceConfig,
         private TranslatorInterface $translator,
         private UrlGenerator $urls,
+        private ?EventDispatcherInterface $events = null,
+        private ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -46,12 +51,21 @@ final readonly class WorkspaceSearchController
         $query = $request->getQueryParams();
         $term = $this->string($query['q'] ?? '');
         $language = $this->language($query['lang'] ?? $this->translator->getLocale());
+        $user = $this->access->currentUser();
         $result = $this->search->search(
             $term,
             $language,
             $this->stringKeyArray($query),
-            $this->access->currentUser(),
+            $user,
         );
+        $this->dispatch(new WorkspaceSearchPerformed(
+            $language,
+            mb_strlen($term, 'UTF-8'),
+            count(array_filter(preg_split('/\s+/u', $term) ?: [])),
+            is_numeric($result['total'] ?? null) ? (int)$result['total'] : 0,
+            $this->string($query['workspace'] ?? ''),
+            is_array($user) && is_numeric($user['id'] ?? null),
+        ));
 
         return $this->views->render('search/index', [
         'title' => __('Workspace search'),
@@ -97,6 +111,24 @@ final readonly class WorkspaceSearchController
         'Content-Type' => 'text/css; charset=utf-8',
         'Cache-Control' => 'public, max-age=300',
         ]);
+    }
+
+    /** HR: Kvar opcionalnog audit slušatelja ne smije prekinuti pretragu. EN: An optional audit-listener failure must not interrupt search. */
+    private function dispatch(WorkspaceSearchPerformed $event): void
+    {
+        if (!$this->events instanceof EventDispatcherInterface) {
+            return;
+        }
+
+        try {
+            $this->events->dispatch($event);
+        } catch (\Throwable $throwable) {
+            $this->logger?->error('Workspace-search business-event listener failed.', [
+                'module' => 'workspace-search',
+                'workspace_slug' => $event->workspaceSlug,
+                'exception' => $throwable,
+            ]);
+        }
     }
 
     /**

@@ -6,6 +6,8 @@ namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Listener;
 
 use AaiEduHr\HeartPhrameModuleWorkspace\Event\WorkspaceContentChanged;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
+use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * HR: Odmah sinkronizira izvedeni indeks nakon promjene objavljenog Workspace
@@ -19,8 +21,10 @@ final readonly class SynchronizeWorkspaceSearchIndex
      * HR: Inicijalizira listener servisom za održavanje indeksa.
      * EN: Initializes the listener with the index maintenance service.
      */
-    public function __construct(private WorkspaceSearchIndexer $indexer)
-    {
+    public function __construct(
+        private WorkspaceSearchIndexer $indexer,
+        private ?LoggerInterface $logger = null,
+    ) {
     }
 
     /**
@@ -45,12 +49,24 @@ EN: New or permanently discarded unpublished nodes have no published
             return;
         }
 
-        if ($event->nodeId !== null && is_string($event->language) && $event->language !== '') {
-            $this->indexer->synchronizeNode($event->workspaceId, $event->nodeId, $event->language);
+        try {
+            if ($event->nodeId !== null && is_string($event->language) && $event->language !== '') {
+                $this->indexer->synchronizeNode($event->workspaceId, $event->nodeId, $event->language);
 
-            return;
+                return;
+            }
+
+            $this->indexer->synchronizeWorkspace($event->workspaceId, $event->language);
+        } catch (Throwable $throwable) {
+            $this->logger?->error('Workspace search-index synchronization failed.', [
+                'module' => 'workspace-search',
+                'workspace_id' => $event->workspaceId,
+                'page_id' => $event->nodeId,
+                'language' => $event->language,
+                'reason' => $event->reason,
+                'exception' => $throwable,
+            ]);
+            throw $throwable;
         }
-
-        $this->indexer->synchronizeWorkspace($event->workspaceId, $event->language);
     }
 }

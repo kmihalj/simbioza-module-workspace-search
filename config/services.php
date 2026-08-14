@@ -27,6 +27,7 @@ use HeartPhrame\Localization\TranslatorInterface;
 use HeartPhrame\Routing\UrlGenerator;
 use HeartPhrame\View\CsrfHandler;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 
 $services = [
     WorkspaceSearchConfig::class => static fn(ContainerInterface $container): WorkspaceSearchConfig =>
@@ -70,6 +71,8 @@ $services = [
             $container->get(WorkspaceConfig::class),
             $container->get(TranslatorInterface::class),
             $container->get(UrlGenerator::class),
+            $container->get(\Psr\EventDispatcher\EventDispatcherInterface::class),
+            $container->get(LoggerInterface::class),
         ),
     WorkspaceSearchSettingsController::class =>
         static fn(ContainerInterface $container): WorkspaceSearchSettingsController =>
@@ -88,7 +91,10 @@ $services = [
             new WorkspaceSearchMenuIntegration($container),
     SynchronizeWorkspaceSearchIndex::class =>
         static fn(ContainerInterface $container): SynchronizeWorkspaceSearchIndex =>
-            new SynchronizeWorkspaceSearchIndex($container->get(WorkspaceSearchIndexer::class)),
+            new SynchronizeWorkspaceSearchIndex(
+                $container->get(WorkspaceSearchIndexer::class),
+                $container->get(LoggerInterface::class),
+            ),
     HpWorkspaceSearchCommand::class => static fn(ContainerInterface $container): HpWorkspaceSearchCommand =>
         new HpWorkspaceSearchCommand(
             $container->get(ConfigInterface::class),
