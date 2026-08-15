@@ -10,6 +10,8 @@ use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceConfig;
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceRepository;
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceWorkflowService;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Command\HpWorkspaceSearchCommand;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Api\WorkspaceSearchApiExtension;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Api\WorkspaceSearchResourceController;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller\WorkspaceSearchController;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller\WorkspaceSearchSettingsController;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Listener\SynchronizeWorkspaceSearchIndex;
@@ -101,6 +103,20 @@ $services = [
             $container->get(WorkspaceSearchIndexer::class),
         ),
 ];
+
+// HR: Search endpoint pripada Search modulu i aktivira se samo uz API jezgru.
+// EN: The search endpoint belongs to Search and activates only with the API core.
+if (interface_exists(\AaiEduHr\HeartPhrameModuleApi\Contract\ApiExtensionInterface::class)) {
+    $services[WorkspaceSearchApiExtension::class] =
+        static fn(): WorkspaceSearchApiExtension => new WorkspaceSearchApiExtension();
+    $services[WorkspaceSearchResourceController::class] =
+        static fn(ContainerInterface $container): WorkspaceSearchResourceController =>
+            new WorkspaceSearchResourceController(
+                $container->get(\AaiEduHr\HeartPhrameModuleApi\Http\ApiResponseFactory::class),
+                $container->get(WorkspaceSearchService::class),
+                $container->get(ConfigInterface::class),
+            );
+}
 
 if (class_exists(\AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBackupProvider::class)) {
     $services['heartphrame.backup.provider.workspace-search-site'] =

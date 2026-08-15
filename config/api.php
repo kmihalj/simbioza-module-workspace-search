@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'module' => 'workspace-search',
+    'extension' => \AaiEduHr\HeartPhrameModuleWorkspaceSearch\Api\WorkspaceSearchApiExtension::class,
     'resources' => [
         'workspace-search' => [
             'label' => ['hr' => 'Pretraga područja', 'en' => 'Workspace search'],

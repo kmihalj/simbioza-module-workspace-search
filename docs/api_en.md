@@ -19,7 +19,8 @@ title/URL/Workspace projection from the same ACL-filtered service.
 ## HTTP API
 
 Install and enable `aaieduhr/heartphrame-module-api`, then issue a key containing
-`workspace-search:read`.
+`workspace-search:read`. Search owns `WorkspaceSearchApiExtension` and its HTTP
+controller; API supplies the shared authentication and response contracts.
 
 ```bash
 export HPH_API_URL='https://example.test/hfc/api/v1'

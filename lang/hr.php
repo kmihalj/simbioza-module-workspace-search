@@ -36,4 +36,8 @@ return [
         'Indeks je obnovljen. Obrađeno: %d; uklonjeno: %d.',
     'Odabrano područje nije pronađeno.' => 'Odabrano područje nije pronađeno.',
     'Pristup nije dozvoljen' => 'Pristup nije dozvoljen',
+    'API ključ nema potreban scope "%s".' => 'API ključ nema potreban scope "%s".',
+    'Pretragu nije moguće izvršiti' => 'Pretragu nije moguće izvršiti',
+    'Zahtjev nije moguće obraditi. Obrati se administratoru uz request ID.' =>
+        'Zahtjev nije moguće obraditi. Obrati se administratoru uz request ID.',
 ];

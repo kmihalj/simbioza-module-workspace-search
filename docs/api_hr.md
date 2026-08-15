@@ -19,7 +19,9 @@ prikaz naslova, URL-a i područja iz istog ACL-filtriranog servisa.
 ## HTTP API
 
 Instalirajte i uključite `aaieduhr/heartphrame-module-api`, pa izdajte ključ
-koji sadrži `workspace-search:read`.
+koji sadrži `workspace-search:read`. Search posjeduje
+`WorkspaceSearchApiExtension` i svoj HTTP kontroler, dok API daje zajedničku
+autentikaciju i ugovore odgovora.
 
 ```bash
 export HPH_API_URL='https://example.test/hfc/api/v1'

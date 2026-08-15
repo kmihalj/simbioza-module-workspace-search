@@ -29,6 +29,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/kmihalj/heartphrame-module-workspace.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/kmihalj/heartphrame-module-API.git"
         }
     ],
     "require": {
@@ -45,6 +49,7 @@
         "aaieduhr/heartphrame-module-api": "Exposes ACL-aware Workspace searches through /api/v1/workspace-search."
     },
     "require-dev": {
+        "aaieduhr/heartphrame-module-api": "dev-main",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^10 || ^11",
         "rector/rector": "^2.0",

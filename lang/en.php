@@ -34,4 +34,8 @@ return [
         'Index rebuilt. Processed: %d; removed: %d.',
     'Odabrano područje nije pronađeno.' => 'The selected Workspace was not found.',
     'Pristup nije dozvoljen' => 'Access is not allowed',
+    'API ključ nema potreban scope "%s".' => 'The API key is missing the required "%s" scope.',
+    'Pretragu nije moguće izvršiti' => 'The search could not be completed',
+    'Zahtjev nije moguće obraditi. Obrati se administratoru uz request ID.' =>
+        'The request could not be processed. Contact the administrator and include the request ID.',
 ];
