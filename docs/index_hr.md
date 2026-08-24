@@ -65,3 +65,16 @@ PostgreSQL i MySQL/MariaDB. Nijedan proizvođač baze ne posjeduje funkcionalnos
 
 Indeks se namjerno ponovno gradi umjesto arhiviranja. Vidi
 [integraciju backupa](backup_hr.md).
+
+## Ugrađena pretraga jednog područja
+
+Workspace dinamički blok **Pretraga područja** koristi isti indeks i isti ACL
+servis kao puna stranica i API, ali zahtjevu uvijek dodaje slug trenutačnog
+područja. Rezultati iz drugog područja zato se ne mogu pojaviti ni kada ih isti
+korisnik inače smije vidjeti. Unos se filtrira dinamično nakon najmanje dva
+znaka; naslov, URL i naziv područja dolaze iz sigurnog JSON odgovora i u DOM se
+upisuju kao tekst, ne kao nepouzdani HTML.
+
+Trajno brisanje područja objavljuje događaj čišćenja prije nestanka izvornih
+redaka. Search odmah uklanja retke s tim `workspace_id`; kasnija ponovna izgradnja
+ostaje sigurna i deterministička.

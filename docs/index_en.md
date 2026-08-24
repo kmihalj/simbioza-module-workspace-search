@@ -65,3 +65,17 @@ PostgreSQL, and MySQL/MariaDB. No database vendor owns the feature.
 
 The index is deliberately rebuilt rather than archived. See
 [Backup integration](backup_en.md).
+
+## Embedded single-Workspace search
+
+The Workspace **Workspace search** dynamic block uses the same index and ACL
+service as the full page and API, but always adds the current Workspace slug to
+the request. Results from another Workspace therefore cannot appear even when
+the same user would otherwise be allowed to view them. Input is filtered
+dynamically after at least two characters; title, URL, and Workspace name come
+from a safe JSON response and are inserted into the DOM as text, never as
+untrusted HTML.
+
+Permanent Workspace deletion emits the cleanup event before source rows vanish.
+Search removes rows with that `workspace_id` immediately; a later rebuild remains
+safe and deterministic.

@@ -209,6 +209,28 @@ final class WorkspaceSearchServiceTest extends TestCase
     }
 
     /**
+     * HR: Ugrađena pretraga područja ne smije vratiti podudaranje iz drugog
+     *     područja čak ni kada korisnik smije vidjeti oba područja.
+     * EN: Embedded Workspace search must not return a match from another
+     *     Workspace even when the actor may view both Workspaces.
+     */
+    public function testSuggestionsCanBeRestrictedToOneWorkspace(): void
+    {
+        $first = $this->workspace('Prvo područje', 'first', 'public');
+        $second = $this->workspace('Drugo područje', 'second', 'public');
+        $firstNode = $this->page($first, 'Prvi rezultat', 'first-result', 'Zajednička tražilica');
+        $this->page($second, 'Drugi rezultat', 'second-result', 'Zajednička tražilica');
+
+        $this->indexer->rebuild();
+        $suggestions = $this->search->suggest('zajednička', 'hr', null, 8, 'first');
+
+        $this->assertCount(1, $suggestions);
+        $this->assertSame('Prvi rezultat', $suggestions[0]['title']);
+        $this->assertSame('/workspace/first/' . $firstNode['slug'], $suggestions[0]['url']);
+        $this->assertSame('Prvo područje', $suggestions[0]['workspace']);
+    }
+
+    /**
      * HR: Pokreće jednu reverzibilnu migraciju i prekida test na pogrešnom ugovoru.
      * EN: Runs one reversible migration and fails the test on an invalid contract.
      */

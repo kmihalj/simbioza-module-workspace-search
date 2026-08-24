@@ -15,6 +15,7 @@ use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Api\WorkspaceSearchResourceControl
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller\WorkspaceSearchController;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller\WorkspaceSearchSettingsController;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Listener\SynchronizeWorkspaceSearchIndex;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Listener\PurgeWorkspaceSearchIndex;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchConfig;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchEditorBridge;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
@@ -32,6 +33,8 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 $services = [
+    PurgeWorkspaceSearchIndex::class => static fn(ContainerInterface $container): PurgeWorkspaceSearchIndex =>
+        new PurgeWorkspaceSearchIndex($container->get(Database::class)),
     WorkspaceSearchConfig::class => static fn(ContainerInterface $container): WorkspaceSearchConfig =>
         new WorkspaceSearchConfig($container->get(ConfigInterface::class), dirname(__DIR__)),
     WorkspaceSearchEditorBridge::class => static fn(ContainerInterface $container): WorkspaceSearchEditorBridge =>

@@ -54,6 +54,11 @@ users and API-key owners receive only content allowed by their effective
 Workspace and inherited page ACL. Filtering occurs before totals, snippets,
 pagination, and suggestions, preventing metadata leaks.
 
+The HTML Editor can insert search for the current Workspace. It dynamically
+uses the same ACL-filtered suggestion endpoint while the server limits results
+to that Workspace slug. Access does not depend on text or a hidden field that
+a visitor could alter to expose another Workspace.
+
 ## Index operations
 
 The database table is a derived, rebuildable index. It stores published text
@@ -68,6 +73,9 @@ A normal search also performs a bounded refresh according to
 restore, deployment, or suspected drift, administrators can use **Settings →
 Workspaces → Search index** to rebuild the entire site or one Workspace. The
 equivalent CLI commands are:
+
+Permanent Workspace deletion removes its derived index rows immediately. The
+index is not business data and is therefore rebuilt, not backed up.
 
 ```bash
 vendor/bin/hph workspace-search:rebuild

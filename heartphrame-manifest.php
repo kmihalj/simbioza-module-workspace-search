@@ -13,6 +13,7 @@ use AaiEduHr\HeartPhrameModuleWorkspace\ModuleWorkspace;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Command\HpWorkspaceSearchCommand;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller\WorkspaceSearchController;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller\WorkspaceSearchSettingsController;
+use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Listener\PurgeWorkspaceSearchIndex;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Listener\SynchronizeWorkspaceSearchIndex;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\ModuleWorkspaceSearch;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchMenuIntegration;
@@ -158,6 +159,10 @@ return new class extends \HeartPhrame\Module\AbstractModuleManifest {
     {
         return [
             new EventListener(WorkspaceContentChanged::class, SynchronizeWorkspaceSearchIndex::class),
+            new EventListener(
+                \AaiEduHr\HeartPhrameModuleWorkspace\Event\WorkspacePermanentlyDeleting::class,
+                PurgeWorkspaceSearchIndex::class,
+            ),
         ];
     }
 

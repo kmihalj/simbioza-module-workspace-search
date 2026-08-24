@@ -54,6 +54,11 @@ API ključa dobivaju samo sadržaj dopušten efektivnim Workspace i naslijeđeni
 page ACL-om. Filtriranje se događa prije brojanja, isječaka, straničenja i
 prijedloga, pa metapodaci ograničene stranice ne cure.
 
+HTML Editor na Workspace stranici može umetnuti pretragu trenutačnog područja.
+Ona dinamično koristi isti ACL-filtrirani endpoint prijedloga, ali serverski
+ograničava rezultate na slug tog područja. Ne ovisi o tekstu ili skrivenom
+polju koje bi posjetitelj mogao izmijeniti radi pristupa drugom sadržaju.
+
 ## Rad s indeksom
 
 Tablica u bazi izvedeni je indeks koji se može ponovno izgraditi. Sprema
@@ -69,6 +74,9 @@ Obična pretraga dodatno radi ograničeno osvježavanje prema
 vraćanja backupa, deploya ili sumnje u poremećen indeks administrator u
 **Postavke → Područja → Indeks pretrage** može obnoviti cijeli site ili jedno
 područje. Ekvivalentne CLI naredbe su:
+
+Trajno brisanje područja odmah uklanja njegove izvedene retke indeksa. Indeks
+nije poslovni podatak pa se ponovno gradi umjesto spremanja u backup.
 
 ```bash
 vendor/bin/hph workspace-search:rebuild

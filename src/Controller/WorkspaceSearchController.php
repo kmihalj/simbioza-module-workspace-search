@@ -92,9 +92,16 @@ final readonly class WorkspaceSearchController
         $query = $request->getQueryParams();
         $term = $this->string($query['q'] ?? '');
         $language = $this->language($query['lang'] ?? $this->translator->getLocale());
+        $workspaceSlug = $this->string($query['workspace'] ?? '');
 
         return $this->responses->json([
-        'data' => $this->search->suggest($term, $language, $this->access->currentUser()),
+        'data' => $this->search->suggest(
+            $term,
+            $language,
+            $this->access->currentUser(),
+            8,
+            $workspaceSlug,
+        ),
         ]);
     }
 

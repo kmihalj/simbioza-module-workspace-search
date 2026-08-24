@@ -151,9 +151,18 @@ final readonly class WorkspaceSearchService
      * @param array<string, mixed>|null $user
      * @return list<array{title:string,url:string,workspace:string}>
      */
-    public function suggest(string $query, string $language, ?array $user = null, int $limit = 8): array
-    {
-        $result = $this->search($query, $language, ['page' => 1, 'per_page' => min(20, $limit)], $user);
+    public function suggest(
+        string $query,
+        string $language,
+        ?array $user = null,
+        int $limit = 8,
+        string $workspaceSlug = '',
+    ): array {
+        $result = $this->search($query, $language, [
+            'page' => 1,
+            'per_page' => min(20, $limit),
+            'workspace' => $workspaceSlug,
+        ], $user);
 
         return array_map(
             static fn(array $item): array => [
