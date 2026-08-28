@@ -46,12 +46,14 @@ $services = [
             $container->get(WorkspaceWorkflowService::class),
             $container->get(WorkspaceSearchEditorBridge::class),
             $container->get(AuthUserService::class),
+            $container->get(WorkspaceConfig::class),
             $container->get(WorkspaceSearchConfig::class),
         ),
     WorkspaceSearchService::class => static fn(ContainerInterface $container): WorkspaceSearchService =>
         new WorkspaceSearchService(
             $container->get(Database::class),
             $container->get(WorkspaceAccessService::class),
+            $container->get(WorkspaceRepository::class),
             $container->get(WorkspaceConfig::class),
             $container->get(WorkspaceSearchConfig::class),
             $container->get(WorkspaceSearchIndexer::class),
@@ -86,6 +88,7 @@ $services = [
                 $container->get(ResponseFactory::class),
                 $container->get(WorkspaceSearchIndexer::class),
                 $container->get(WorkspaceRepository::class),
+                $container->get(\AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspacePresentationRegistry::class),
                 $container->get(WorkspaceAccessService::class),
                 $container->get(UrlGenerator::class),
                 $container->get(AlertHandler::class),

@@ -6,6 +6,7 @@ namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service;
 
 use AaiEduHr\HeartPhrameModuleAuth\Service\AuthUserService;
 use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
+use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceConfig;
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceRepository;
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceValue;
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceWorkflowService;
@@ -31,6 +32,7 @@ final class WorkspaceSearchIndexer
         private readonly WorkspaceWorkflowService $workflow,
         private readonly WorkspaceSearchEditorBridge $editor,
         private readonly AuthUserService $users,
+        private readonly WorkspaceConfig $workspaceConfig,
         private readonly WorkspaceSearchConfig $config,
     ) {
     }
@@ -119,6 +121,7 @@ EN: The database timestamp prevents every PHP-FPM process from
         $liveKeys = [];
         $indexed = 0;
         $authorNames = [];
+        $primaryLanguage = $this->workspaceConfig->siteDefaultLanguage();
         $existingByKey = [];
         foreach ($full ? [] : $existingRows as $existing) {
             $existingKey = WorkspaceValue::int($existing['node_id'] ?? 0) . ':'
@@ -184,12 +187,19 @@ EN: The database timestamp prevents every PHP-FPM process from
             }
 
             foreach ($versionsByLanguage as $language => $versions) {
+                $localizedWorkspace = $this->workspaces->localizeWorkspace(
+                    $workspace,
+                    $language,
+                    $primaryLanguage,
+                );
                 foreach ($this->editor->publishedVersions($versions, $language) as $documentKey => $version) {
                     $node = $nodesByDocument[(string)$documentKey] ?? null;
                     $row = $workflowsByLanguage[$language][$documentKey] ?? null;
                     if (!is_array($node) || !is_array($row)) {
                         continue;
                     }
+
+                    $localizedNode = $this->workspaces->localizeNode($node, $language, $primaryLanguage);
 
                     $nodeId = WorkspaceValue::int($node['id'] ?? 0);
                     $authorId = WorkspaceValue::int($row['published_by_user_id'] ?? 0);
@@ -203,7 +213,7 @@ EN: The database timestamp prevents every PHP-FPM process from
                     $body = $this->plainText($version->html);
                     $title = trim($version->title) !== ''
                     ? trim($version->title)
-                    : WorkspaceValue::string($node['title'] ?? '');
+                    : WorkspaceValue::string($localizedNode['title'] ?? '');
                     $hash = hash('sha256', implode("\n", [
                     $title,
                     $body,
@@ -222,7 +232,7 @@ EN: The database timestamp prevents every PHP-FPM process from
                     'workspace_id' => $currentWorkspaceId,
                     'node_id' => $nodeId,
                     'workspace_slug' => $workspaceSlug,
-                    'workspace_name' => WorkspaceValue::string($workspace['name'] ?? ''),
+                    'workspace_name' => WorkspaceValue::string($localizedWorkspace['name'] ?? ''),
                     'node_slug' => WorkspaceValue::string($node['slug'] ?? ''),
                     'document_key' => (string)$documentKey,
                     'language_code' => $language,
@@ -339,9 +349,28 @@ EN: The database timestamp prevents every PHP-FPM process from
         : null;
 
         $body = $this->plainText($version->html);
+        $primaryLanguage = $this->workspaceConfig->siteDefaultLanguage();
+        $localizedNodeTitle = $this->workspaces->localizedValue(
+            $context['node_title_translations'] ?? [],
+            $language,
+            $primaryLanguage,
+        );
+        if ($localizedNodeTitle === '') {
+            $localizedNodeTitle = WorkspaceValue::string($context['node_title'] ?? '');
+        }
+
+        $localizedWorkspaceName = $this->workspaces->localizedValue(
+            $context['workspace_name_translations'] ?? [],
+            $language,
+            $primaryLanguage,
+        );
+        if ($localizedWorkspaceName === '') {
+            $localizedWorkspaceName = WorkspaceValue::string($context['workspace_name'] ?? '');
+        }
+
         $title = trim($version->title) !== ''
         ? trim($version->title)
-        : WorkspaceValue::string($context['node_title'] ?? '');
+        : $localizedNodeTitle;
         $publishedAt = WorkspaceValue::string($context['published_at'] ?? '');
         $hash = hash('sha256', implode("\n", [$title, $body, (string)$versionNumber, $publishedAt]));
         $now = date('Y-m-d H:i:s');
@@ -349,7 +378,7 @@ EN: The database timestamp prevents every PHP-FPM process from
         'workspace_id' => $workspaceId,
         'node_id' => $nodeId,
         'workspace_slug' => WorkspaceValue::string($context['workspace_slug'] ?? ''),
-        'workspace_name' => WorkspaceValue::string($context['workspace_name'] ?? ''),
+        'workspace_name' => $localizedWorkspaceName,
         'node_slug' => WorkspaceValue::string($context['node_slug'] ?? ''),
         'document_key' => $documentKey,
         'language_code' => $language,

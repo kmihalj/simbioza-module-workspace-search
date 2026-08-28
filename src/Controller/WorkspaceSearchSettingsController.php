@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller;
 
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceAccessService;
+use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspacePresentationRegistry;
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceRepository;
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceValue;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
@@ -34,6 +35,7 @@ final readonly class WorkspaceSearchSettingsController
         private ResponseFactory $responses,
         private WorkspaceSearchIndexer $indexer,
         private WorkspaceRepository $workspaces,
+        private WorkspacePresentationRegistry $presentations,
         private WorkspaceAccessService $access,
         private UrlGenerator $urls,
         private AlertHandler $alerts,
@@ -53,7 +55,9 @@ final readonly class WorkspaceSearchSettingsController
 
         return $this->views->render('settings/index', [
         'title' => __('Indeks pretrage'),
-        'workspaces' => $this->workspaces->tablesReady() ? $this->workspaces->activeWorkspaces() : [],
+        'workspaces' => $this->workspaces->tablesReady()
+            ? $this->presentations->many($this->workspaces->activeWorkspaces())
+            : [],
         'reindexPath' => $this->path('workspace-search.settings.reindex', '/settings/workspace-search/reindex'),
         'csrfInput' => $this->csrf->generateCsrfTokenInputField(),
         'settingsMenuActiveSection' => 'workspace-search.settings',

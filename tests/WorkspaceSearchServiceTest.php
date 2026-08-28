@@ -117,6 +117,7 @@ final class WorkspaceSearchServiceTest extends TestCase
             $workflow,
             new WorkspaceSearchEditorBridge($provider),
             new AuthUserService($this->database),
+            $workspaceConfig,
             $searchConfig,
         );
         $urls = $this->createMock(UrlGenerator::class);
@@ -127,6 +128,7 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->search = new WorkspaceSearchService(
             $this->database,
             $access,
+            $this->repository,
             $workspaceConfig,
             $searchConfig,
             $this->indexer,

@@ -8,6 +8,7 @@ use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
 use AaiEduHr\HeartPhrameModuleOrm\Database\QueryBuilder;
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceAccessService;
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceConfig;
+use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceRepository;
 use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceValue;
 use AaiEduHr\HeartPhrameModuleWorkspaceSearch\ModuleWorkspaceSearch;
 use HeartPhrame\Routing\UrlGenerator;
@@ -29,6 +30,7 @@ final readonly class WorkspaceSearchService
     public function __construct(
         private Database $database,
         private WorkspaceAccessService $access,
+        private WorkspaceRepository $workspaces,
         private WorkspaceConfig $workspaceConfig,
         private WorkspaceSearchConfig $config,
         private WorkspaceSearchIndexer $indexer,
@@ -185,6 +187,7 @@ final readonly class WorkspaceSearchService
         $nodeIds = [];
         $workspaces = [];
         foreach ($this->access->visibleWorkspaces($user) as $workspace) {
+            $workspace = $this->workspaces->localizeWorkspace($workspace, $language, $defaultLanguage);
             $tree = $this->access->visibleTreeForLanguages(
                 $workspace,
                 $user,
