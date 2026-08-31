@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Service;
 
 use AaiEduHr\HeartPhrameModuleAuth\Service\AuthUserService;
 use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceConfig;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceRepository;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceValue;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceWorkflowService;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\ModuleWorkspaceSearch;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceConfig;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceRepository;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceValue;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceWorkflowService;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch;
 
 /**
  * HR: Sinkronizira izvedeni indeks sa stvarno objavljenim Workspace verzijama.

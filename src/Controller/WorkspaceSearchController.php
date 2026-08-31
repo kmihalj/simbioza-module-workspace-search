@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Controller;
 
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceAccessService;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceConfig;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Event\WorkspaceSearchPerformed;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchConfig;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchModuleViewRenderer;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchService;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceAccessService;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceConfig;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Event\WorkspaceSearchPerformed;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchConfig;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchModuleViewRenderer;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchService;
 use HeartPhrame\Http\ResponseFactory;
 use HeartPhrame\Localization\TranslatorInterface;
 use HeartPhrame\Routing\UrlGenerator;

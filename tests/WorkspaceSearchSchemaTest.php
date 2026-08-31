@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Tests;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Tests;
 
 use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
 use AaiEduHr\HeartPhrameModuleOrm\Database\Migration\ReversibleMigrationInterface;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\ModuleWorkspaceSearch;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch;
 use HeartPhrame\Config\Config;
 use HeartPhrame\Helper\Helper;
 use PHPUnit\Framework\Attributes\CoversClass;

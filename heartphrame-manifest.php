@@ -8,16 +8,16 @@ use AaiEduHr\HeartPhrameModuleEditorHtml\ModuleEditorHtml;
 use AaiEduHr\HeartPhrameModuleMenu\Extension\TopMenuControlRegistry;
 use AaiEduHr\HeartPhrameModuleMenu\ModuleMenu;
 use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
-use AaiEduHr\HeartPhrameModuleWorkspace\Event\WorkspaceContentChanged;
-use AaiEduHr\HeartPhrameModuleWorkspace\ModuleWorkspace;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Command\HpWorkspaceSearchCommand;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller\WorkspaceSearchController;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller\WorkspaceSearchSettingsController;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Listener\PurgeWorkspaceSearchIndex;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Listener\SynchronizeWorkspaceSearchIndex;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\ModuleWorkspaceSearch;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchMenuIntegration;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchTopMenuControl;
+use AaiEduHr\SimbiozaModuleWorkspace\Event\WorkspaceContentChanged;
+use AaiEduHr\SimbiozaModuleWorkspace\ModuleWorkspace;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Command\HpWorkspaceSearchCommand;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Controller\WorkspaceSearchController;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Controller\WorkspaceSearchSettingsController;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Listener\PurgeWorkspaceSearchIndex;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Listener\SynchronizeWorkspaceSearchIndex;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchMenuIntegration;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchTopMenuControl;
 use HeartPhrame\Bridge\ComposerBridge;
 use HeartPhrame\Command\CommandDefinition;
 use HeartPhrame\Config\ConfigInterface;
@@ -30,7 +30,7 @@ return new class extends \HeartPhrame\Module\AbstractModuleManifest {
         'aaieduhr/heartphrame-module-menu',
         'aaieduhr/heartphrame-module-auth',
         'aaieduhr/heartphrame-module-editor-html',
-        'aaieduhr/heartphrame-module-workspace',
+        'aaieduhr/simbioza-module-workspace',
     ];
 
     /**
@@ -160,7 +160,7 @@ return new class extends \HeartPhrame\Module\AbstractModuleManifest {
         return [
             new EventListener(WorkspaceContentChanged::class, SynchronizeWorkspaceSearchIndex::class),
             new EventListener(
-                \AaiEduHr\HeartPhrameModuleWorkspace\Event\WorkspacePermanentlyDeleting::class,
+                \AaiEduHr\SimbiozaModuleWorkspace\Event\WorkspacePermanentlyDeleting::class,
                 PurgeWorkspaceSearchIndex::class,
             ),
         ];

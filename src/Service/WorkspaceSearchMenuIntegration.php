@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Service;
 
 use Psr\Container\ContainerInterface;
 use Throwable;

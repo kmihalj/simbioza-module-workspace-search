@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Tests\Api;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Tests\Api;
 
 use AaiEduHr\HeartPhrameModuleApi\Contract\ApiRouteRegistry;
 use AaiEduHr\HeartPhrameModuleApi\Middleware\ApiAuthenticationMiddleware;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Api\WorkspaceSearchApiExtension;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Api\WorkspaceSearchApiExtension;
 use HeartPhrame\Routing\Routes;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;

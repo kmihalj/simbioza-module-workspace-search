@@ -10,14 +10,14 @@ return ['providers' => [
     [
         'service' => 'heartphrame.backup.provider.workspace-search-site',
         'requires' => [
-            'aaieduhr/heartphrame-module-workspace',
+            'aaieduhr/simbioza-module-workspace',
             'aaieduhr/heartphrame-module-editor-html',
         ],
     ],
     [
         'service' => 'heartphrame.backup.provider.workspace-search-workspace',
         'requires' => [
-            'aaieduhr/heartphrame-module-workspace',
+            'aaieduhr/simbioza-module-workspace',
             'aaieduhr/heartphrame-module-editor-html',
         ],
     ],

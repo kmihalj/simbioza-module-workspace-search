@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Listener;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Listener;
 
 use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
-use AaiEduHr\HeartPhrameModuleWorkspace\Event\WorkspacePermanentlyDeleting;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\ModuleWorkspaceSearch;
+use AaiEduHr\SimbiozaModuleWorkspace\Event\WorkspacePermanentlyDeleting;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch;
 
 /** HR: Uklanja izvedeni indeks područja prije brisanja izvora. EN: Removes the derived Workspace index before its source is deleted. */
 final readonly class PurgeWorkspaceSearchIndex

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Event;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Event;
 
 /**
  * HR: Bilježi ACL-filtriranu pretragu bez spremanja korisnikova upita.

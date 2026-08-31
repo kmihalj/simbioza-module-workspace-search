@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Controller;
 
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceAccessService;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspacePresentationRegistry;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceRepository;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceValue;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchModuleViewRenderer;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceAccessService;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspacePresentationRegistry;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceRepository;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceValue;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchModuleViewRenderer;
 use HeartPhrame\Alert\Alert;
 use HeartPhrame\Alert\AlertHandler;
 use HeartPhrame\CodeBook\AlertLevelEnum;

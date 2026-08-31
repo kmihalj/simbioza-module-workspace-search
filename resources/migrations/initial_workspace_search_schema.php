@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
 use AaiEduHr\HeartPhrameModuleOrm\Database\Migration\ReversibleMigrationInterface;
 use AaiEduHr\HeartPhrameModuleOrm\Database\Schema\Blueprint;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\ModuleWorkspaceSearch;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch;
 
 return new class implements ReversibleMigrationInterface {
     /**

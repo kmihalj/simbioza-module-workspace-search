@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Command;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Command;
 
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
 use HeartPhrame\Config\ConfigInterface;
 use RuntimeException;
 

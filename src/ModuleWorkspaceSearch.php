@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch;
 
 /**
  * HR: Stabilni tehnički identifikatori Workspace Search modula.
@@ -10,7 +10,7 @@ namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch;
  */
 final class ModuleWorkspaceSearch
 {
-    public const PACKAGE_NAME = 'aaieduhr/heartphrame-module-workspace-search';
+    public const PACKAGE_NAME = 'aaieduhr/simbioza-module-workspace-search';
 
     public const TABLE_INDEX = 'workspace_search_index';
 

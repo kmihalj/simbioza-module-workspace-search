@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Service;
 
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\ModuleWorkspaceSearch;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch;
 use HeartPhrame\Http\ResponseFactory;
 use Psr\Http\Message\ResponseInterface;
 

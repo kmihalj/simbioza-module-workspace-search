@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Tests;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Tests;
 
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchTopMenuControl;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchTopMenuControl;
 use HeartPhrame\Localization\TranslatorInterface;
 use HeartPhrame\Routing\UrlGenerator;
 use PHPUnit\Framework\Attributes\CoversClass;

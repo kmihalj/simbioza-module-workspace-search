@@ -1,4 +1,4 @@
-# HeartPhrame Workspace Search module
+# Simbioza Workspace Search module
 
 [Hrvatska verzija](README_hr.md)
 
@@ -11,13 +11,13 @@ integration.
 
 Required, in enable order:
 
-1. `aaieduhr/heartphrame-framework` (`dev-main`)
-2. `aaieduhr/heartphrame-module-orm` (`dev-main`)
-3. `aaieduhr/heartphrame-module-menu` (`dev-main`)
-4. `aaieduhr/heartphrame-module-auth` (`dev-main`)
-5. `aaieduhr/heartphrame-module-editor-html` (`dev-main`)
-6. `aaieduhr/heartphrame-module-workspace` (`dev-main`)
-7. `aaieduhr/heartphrame-module-workspace-search` (`dev-main`)
+1. `aaieduhr/heartphrame-framework` (`^0.0.24`)
+2. `aaieduhr/heartphrame-module-orm` (`^0.1.0`)
+3. `aaieduhr/heartphrame-module-menu` (`^0.1.0`)
+4. `aaieduhr/heartphrame-module-auth` (`^0.1.0`)
+5. `aaieduhr/heartphrame-module-editor-html` (`^0.1.0`)
+6. `aaieduhr/simbioza-module-workspace` (`^0.1.0`)
+7. `aaieduhr/simbioza-module-workspace-search` (`^0.1.0`)
 
 Optional integration:
 
@@ -30,7 +30,7 @@ dependencies rather than optional suggestions.
 ## Installation
 
 ```bash
-composer require aaieduhr/heartphrame-module-workspace-search:dev-main
+composer require aaieduhr/simbioza-module-workspace-search:^0.1.0
 vendor/bin/hph workspace-search:install-migration
 vendor/bin/hph orm-migrate:up
 vendor/bin/hph workspace-search:rebuild
@@ -106,5 +106,5 @@ rebuilds the index.
 - [Testing on three databases](docs/testing_en.md)
 - [Backup integration](docs/backup_en.md)
 
-The Framework and all internal modules follow the moving `dev-main` policy.
-Do not pin one internal module to an older commit in this package.
+The Framework uses `^0.0.24` and all internal modules use the compatible
+`^0.1.0` release line. Do not pin one internal module to an older commit.

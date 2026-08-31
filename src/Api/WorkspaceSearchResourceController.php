@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Api;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Api;
 
 use AaiEduHr\HeartPhrameModuleApi\Http\ApiResponseFactory;
 use AaiEduHr\HeartPhrameModuleApi\ModuleApi;
 use AaiEduHr\HeartPhrameModuleAuth\Api\AuthApiIdentity;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchService;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchService;
 use HeartPhrame\Config\ConfigInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

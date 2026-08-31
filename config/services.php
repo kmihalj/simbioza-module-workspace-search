@@ -5,24 +5,24 @@ declare(strict_types=1);
 use AaiEduHr\HeartPhrameModuleAuth\Service\AuthUserService;
 use AaiEduHr\HeartPhrameModuleEditorHtml\Service\EditorPublishedVersionProviderInterface;
 use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceAccessService;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceConfig;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceRepository;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceWorkflowService;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Command\HpWorkspaceSearchCommand;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Api\WorkspaceSearchApiExtension;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Api\WorkspaceSearchResourceController;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller\WorkspaceSearchController;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Controller\WorkspaceSearchSettingsController;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Listener\SynchronizeWorkspaceSearchIndex;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Listener\PurgeWorkspaceSearchIndex;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchConfig;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchEditorBridge;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchMenuIntegration;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchModuleViewRenderer;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchService;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchTopMenuControl;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceAccessService;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceConfig;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceRepository;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceWorkflowService;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Command\HpWorkspaceSearchCommand;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Api\WorkspaceSearchApiExtension;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Api\WorkspaceSearchResourceController;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Controller\WorkspaceSearchController;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Controller\WorkspaceSearchSettingsController;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Listener\SynchronizeWorkspaceSearchIndex;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Listener\PurgeWorkspaceSearchIndex;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchConfig;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchEditorBridge;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchMenuIntegration;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchModuleViewRenderer;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchService;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchTopMenuControl;
 use HeartPhrame\Alert\AlertHandler;
 use HeartPhrame\Config\ConfigInterface;
 use HeartPhrame\Http\ResponseFactory;
@@ -88,7 +88,7 @@ $services = [
                 $container->get(ResponseFactory::class),
                 $container->get(WorkspaceSearchIndexer::class),
                 $container->get(WorkspaceRepository::class),
-                $container->get(\AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspacePresentationRegistry::class),
+                $container->get(\AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspacePresentationRegistry::class),
                 $container->get(WorkspaceAccessService::class),
                 $container->get(UrlGenerator::class),
                 $container->get(AlertHandler::class),
@@ -130,7 +130,7 @@ if (class_exists(\AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBack
             new \AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBackupProvider(
                 new \AaiEduHr\HeartPhrameModuleBackup\Value\BackupProviderMetadata(
                     'workspace-search-site',
-                    \AaiEduHr\HeartPhrameModuleWorkspaceSearch\ModuleWorkspaceSearch::PACKAGE_NAME,
+                    \AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch::PACKAGE_NAME,
                     1,
                     ['hr' => 'Obnova indeksa pretrage sitea', 'en' => 'Site search-index rebuild'],
                     ['workspace', 'editor-html'],
@@ -140,7 +140,7 @@ if (class_exists(\AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBack
                     ],
                     true,
                     false,
-                    [\AaiEduHr\HeartPhrameModuleWorkspace\ModuleWorkspace::PACKAGE_NAME],
+                    [\AaiEduHr\SimbiozaModuleWorkspace\ModuleWorkspace::PACKAGE_NAME],
                     true,
                 ),
                 static function (\AaiEduHr\HeartPhrameModuleBackup\Value\BackupImportContext $context) use ($container): void {
@@ -155,14 +155,14 @@ if (class_exists(\AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBack
             new \AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBackupProvider(
                 new \AaiEduHr\HeartPhrameModuleBackup\Value\BackupProviderMetadata(
                     'workspace-search-workspace',
-                    \AaiEduHr\HeartPhrameModuleWorkspaceSearch\ModuleWorkspaceSearch::PACKAGE_NAME,
+                    \AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch::PACKAGE_NAME,
                     1,
                     ['hr' => 'Obnova indeksa odabranog područja', 'en' => 'Selected-workspace index rebuild'],
                     ['workspace-scope', 'editor-html-workspace'],
                     [\AaiEduHr\HeartPhrameModuleBackup\Value\BackupScope::WORKSPACE],
                     true,
                     false,
-                    [\AaiEduHr\HeartPhrameModuleWorkspace\ModuleWorkspace::PACKAGE_NAME],
+                    [\AaiEduHr\SimbiozaModuleWorkspace\ModuleWorkspace::PACKAGE_NAME],
                     true,
                 ),
                 static function (\AaiEduHr\HeartPhrameModuleBackup\Value\BackupImportContext $context) use ($container): void {

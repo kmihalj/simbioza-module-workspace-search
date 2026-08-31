@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Tests;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Tests;
 
 use AaiEduHr\HeartPhrameModuleAuth\ModuleAuth;
 use AaiEduHr\HeartPhrameModuleAuth\Service\AuthUserService;
@@ -10,14 +10,14 @@ use AaiEduHr\HeartPhrameModuleEditorHtml\Service\EditorDocumentVersion;
 use AaiEduHr\HeartPhrameModuleEditorHtml\Service\EditorPublishedVersionProviderInterface;
 use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
 use AaiEduHr\HeartPhrameModuleOrm\Database\Migration\ReversibleMigrationInterface;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceAccessService;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceConfig;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceRepository;
-use AaiEduHr\HeartPhrameModuleWorkspace\Service\WorkspaceWorkflowService;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchConfig;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchEditorBridge;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
-use AaiEduHr\HeartPhrameModuleWorkspaceSearch\Service\WorkspaceSearchService;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceAccessService;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceConfig;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceRepository;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceWorkflowService;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchConfig;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchEditorBridge;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchService;
 use HeartPhrame\Authn\AuthnHandlerInterface;
 use HeartPhrame\Config\Config;
 use HeartPhrame\Helper\Helper;
@@ -64,7 +64,7 @@ final class WorkspaceSearchServiceTest extends TestCase
         );
         $this->runMigration(
             dirname(__DIR__)
-            . '/vendor/aaieduhr/heartphrame-module-workspace/resources/migrations/initial_workspace_schema.php',
+            . '/vendor/aaieduhr/simbioza-module-workspace/resources/migrations/initial_workspace_schema.php',
         );
         $this->runMigration(dirname(__DIR__) . '/resources/migrations/initial_workspace_search_schema.php');
         foreach ([1, 2, 3] as $userId) {
@@ -84,7 +84,7 @@ final class WorkspaceSearchServiceTest extends TestCase
         $workflow = new WorkspaceWorkflowService($this->repository);
         $workspaceConfig = new WorkspaceConfig(
             $config,
-            dirname(__DIR__) . '/vendor/aaieduhr/heartphrame-module-workspace',
+            dirname(__DIR__) . '/vendor/aaieduhr/simbioza-module-workspace',
         );
         $access = new WorkspaceAccessService($this->repository, $this->authnHandler(), $workspaceConfig, $workflow);
         $provider = new class ($this->versions) implements EditorPublishedVersionProviderInterface {

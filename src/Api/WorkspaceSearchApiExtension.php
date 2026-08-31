@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AaiEduHr\HeartPhrameModuleWorkspaceSearch\Api;
+namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Api;
 
 use AaiEduHr\HeartPhrameModuleApi\Contract\ApiExtensionInterface;
 use AaiEduHr\HeartPhrameModuleApi\Contract\ApiRouteRegistry;
@@ -10,7 +10,7 @@ use AaiEduHr\HeartPhrameModuleApi\Contract\ApiRouteRegistry;
 /**
  * HR: Oglašava rutu pretrage generičkoj API jezgri.
  * EN: Advertises the search route to the generic API core.
- * @see \AaiEduHr\HeartPhrameModuleWorkspaceSearch\Tests\Api\WorkspaceSearchApiExtensionTest
+ * @see \AaiEduHr\SimbiozaModuleWorkspaceSearch\Tests\Api\WorkspaceSearchApiExtensionTest
  */
 final readonly class WorkspaceSearchApiExtension implements ApiExtensionInterface
 {
