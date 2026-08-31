@@ -24,7 +24,7 @@ koji sadrži `workspace-search:read`. Search posjeduje
 autentikaciju i ugovore odgovora.
 
 ```bash
-export HPH_API_URL='https://example.test/hfc/api/v1'
+export HPH_API_URL='https://example.test/example-app/api/v1'
 export HPH_API_TOKEN='ovdje-zalijepite-jednokratno-prikazanu-tajnu'
 
 curl --fail-with-body --silent --show-error \
@@ -45,7 +45,7 @@ Primjer payloada:
       "snippet": "Otvaranje, pristupačnost i objavljivanje ...",
       "author_name": "Ana Primjer",
       "language": "hr",
-      "url": "/hfc/workspace/konferencija/raspored"
+      "url": "/example-app/workspace/konferencija/raspored"
     }
   ],
   "meta": {"page": 1, "per_page": 10, "total": 1, "pages": 1}

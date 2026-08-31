@@ -23,7 +23,7 @@ Install and enable `aaieduhr/heartphrame-module-api`, then issue a key containin
 controller; API supplies the shared authentication and response contracts.
 
 ```bash
-export HPH_API_URL='https://example.test/hfc/api/v1'
+export HPH_API_URL='https://example.test/example-app/api/v1'
 export HPH_API_TOKEN='paste-the-one-time-secret-here'
 
 curl --fail-with-body --silent --show-error \
@@ -44,7 +44,7 @@ Example payload:
       "snippet": "Opening, accessibility, and publishing ...",
       "author_name": "Ana Example",
       "language": "en",
-      "url": "/hfc/workspace/conference/agenda"
+      "url": "/example-app/workspace/conference/agenda"
     }
   ],
   "meta": {"page": 1, "per_page": 10, "total": 1, "pages": 1}
