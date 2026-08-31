@@ -17,6 +17,8 @@
 }
 
 .hph-workspace-search-control {
+    align-items: center;
+    display: flex;
     min-width: min(20rem, 40vw);
     margin: .25rem .75rem;
 }

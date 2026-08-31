@@ -39,7 +39,7 @@ final readonly class WorkspaceSearchTopMenuControl implements TopMenuControlProv
 
         $label = $this->escape($this->translator->trans('Search workspaces'));
 
-        return '<li class="nav-item hph-workspace-search-control">'
+        return '<li class="nav-item hph-workspace-search-control d-flex align-items-center">'
         . '<form class="d-flex align-items-center" role="search" method="get" action="'
         . $this->escape($action) . '">'
         . '<label class="visually-hidden" for="hph-workspace-search-input">' . $label . '</label>'
