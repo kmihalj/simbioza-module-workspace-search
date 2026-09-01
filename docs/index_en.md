@@ -21,12 +21,19 @@ For every web or API request the service:
 
 1. enumerates Workspaces visible to the explicit actor (or public Workspaces
    for a guest);
-2. builds the visible tree in requested and fallback languages;
-3. applies inherited node restrictions and removes inaccessible descendants;
-4. limits the SQL candidate set to those node IDs;
-5. applies text and optional Workspace/author/date filters;
-6. selects the requested locale or exact published site-default fallback;
-7. only then computes totals, snippets, highlights, and pagination.
+2. localizes Workspace names/descriptions and matches the name, description,
+   and slug only in that ACL-authorized collection;
+3. builds the visible tree in requested and fallback languages;
+4. applies inherited node restrictions and removes inaccessible descendants;
+5. limits the SQL candidate set to those node IDs;
+6. searches the exact published page title and body and applies optional
+   Workspace/author/date filters;
+7. selects the requested locale or exact published site-default fallback;
+8. only then combines Workspace/page results and computes totals, snippets,
+   highlights, and pagination.
+
+A Workspace-name match is a real result even when it has no published page. A
+published page title remains searchable independently of its body text.
 
 The index intentionally contains no authorization decision because users,
 groups, and inherited restrictions can change without reindexing page text.

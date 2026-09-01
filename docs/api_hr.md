@@ -14,7 +14,10 @@ podržava:
 ```
 
 Opcionalna JSON ruta `/search/suggest?q=...&lang=...` vraća samo ograničeni
-prikaz naslova, URL-a i područja iz istog ACL-filtriranog servisa.
+prikaz naslova, URL-a i područja iz istog ACL-filtriranog servisa. Rezultat može
+biti objavljena stranica ili samo područje pronađeno po nazivu, opisu ili slugu.
+Puna stranica prikazuje ograničen prozor brojeva stranica s prethodnom i
+sljedećom poveznicom, ne jedan element za svaku stranicu velikog rezultata.
 
 ## HTTP API
 
@@ -39,6 +42,7 @@ Primjer payloada:
 {
   "data": [
     {
+      "result_type": "page",
       "workspace_slug": "konferencija",
       "node_slug": "raspored",
       "title": "Raspored",
@@ -77,5 +81,5 @@ foreach ($payload['data'] ?? [] as $item) {
 ```
 
 Nedostajući scope vraća `403 insufficient_scope`. Vlasnik ključa može dobiti
-nula rezultata kada mu Workspace/page ACL ne dopušta nijednu stranicu; to nije
-greška i namjerno ne otkriva skriveni resurs.
+nula rezultata kada mu Workspace/page ACL ne dopušta nijedno podudarno područje
+ni stranicu; to nije greška i namjerno ne otkriva skriveni resurs.

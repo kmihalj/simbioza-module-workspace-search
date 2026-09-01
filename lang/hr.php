@@ -18,6 +18,8 @@ return [
     'Results found: %d' => 'Pronađeno rezultata: %d',
     'No results match the selected filters.' => 'Nema rezultata za zadane filtre.',
     'Result pages' => 'Stranice rezultata',
+    'Previous page' => 'Prethodna stranica',
+    'Next page' => 'Sljedeća stranica',
     'Enter at least %d characters.' => 'Upišite barem %d znaka.',
     'Pages indexed: %d; stale rows removed: %d.' =>
         'Indeksirano stranica: %d; uklonjeno starih redaka: %d.',

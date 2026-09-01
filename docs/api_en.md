@@ -14,7 +14,10 @@ page is `/search` and supports:
 ```
 
 The optional `/search/suggest?q=...&lang=...` JSON route returns only a bounded
-title/URL/Workspace projection from the same ACL-filtered service.
+title/URL/Workspace projection from the same ACL-filtered service. A result can
+represent a published page or a Workspace matched by name, description, or slug.
+The full page renders a bounded page-number window with previous/next links,
+not one control for every page in a large result set.
 
 ## HTTP API
 
@@ -38,6 +41,7 @@ Example payload:
 {
   "data": [
     {
+      "result_type": "page",
       "workspace_slug": "conference",
       "node_slug": "agenda",
       "title": "Agenda",
@@ -76,5 +80,5 @@ foreach ($payload['data'] ?? [] as $item) {
 ```
 
 A missing scope returns `403 insufficient_scope`. The key owner may still
-receive zero results when their Workspace/page ACL allows none; this is not an
-error and intentionally reveals no hidden resource.
+receive zero results when their Workspace/page ACL allows no matching Workspace
+or page; this is not an error and intentionally reveals no hidden resource.

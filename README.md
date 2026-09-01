@@ -42,17 +42,20 @@ the application's configured base path).
 
 ## What is searched
 
+- visible Workspace name, description, and slug, including a localized personal-
+  Workspace owner name supplied by an optional presentation provider;
 - published page title;
 - sanitized plain text of the exact published Editor version;
 - publishing author;
 - requested language with site-default fallback;
 - optional Workspace and publication-date filters.
 
+Workspace matches are returned even when the Workspace has no published page.
 Drafts, archived workflows, deleted pages, and inaccessible descendants are
-never returned. Guest searches contain public pages only. Authenticated web
-users and API-key owners receive only content allowed by their effective
-Workspace and inherited page ACL. Filtering occurs before totals, snippets,
-pagination, and suggestions, preventing metadata leaks.
+never returned. Guest searches contain public Workspaces and pages only.
+Authenticated web users and API-key owners receive only content allowed by
+their effective Workspace and inherited page ACL. Filtering occurs before
+totals, snippets, pagination, and suggestions, preventing metadata leaks.
 
 The HTML Editor can insert search for the current Workspace. It dynamically
 uses the same ACL-filtered suggestion endpoint while the server limits results

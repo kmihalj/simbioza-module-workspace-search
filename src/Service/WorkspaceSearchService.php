@@ -8,6 +8,7 @@ use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
 use AaiEduHr\HeartPhrameModuleOrm\Database\QueryBuilder;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceAccessService;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceConfig;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspacePresentationRegistry;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceRepository;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceValue;
 use AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch;
@@ -35,6 +36,7 @@ final readonly class WorkspaceSearchService
         private WorkspaceSearchConfig $config,
         private WorkspaceSearchIndexer $indexer,
         private UrlGenerator $urls,
+        private ?WorkspacePresentationRegistry $presentations = null,
     ) {
     }
 
@@ -86,58 +88,64 @@ final readonly class WorkspaceSearchService
         $this->indexer->refreshIfDue();
         [$visibleNodeIds, $visibleWorkspaces] = $this->visibleScope($user, $language, $defaultLanguage);
         $base['workspaces'] = $visibleWorkspaces;
-        if ($visibleNodeIds === []) {
-            return $base;
-        }
+        $workspaceResults = $author === '' && $from === '' && $to === ''
+            ? $this->workspaceResults($visibleWorkspaces, $query, $workspaceSlug)
+            : [];
 
-        $builder = $this->database->table(ModuleWorkspaceSearch::TABLE_INDEX)
-        ->whereIn('node_id', $visibleNodeIds)
-        ->whereIn('language_code', array_values(array_unique([$language, $defaultLanguage])));
-        if ($workspaceSlug !== '') {
-            $builder->where('workspace_slug', '=', $workspaceSlug);
-        }
-
-        if ($author !== '') {
-            if (ctype_digit($author)) {
-                $builder->where('author_user_id', '=', (int)$author);
-            } else {
-                $builder->whereRaw('LOWER(author_name) LIKE ?', ['%' . mb_strtolower($author) . '%']);
+        $rows = [];
+        if ($visibleNodeIds !== []) {
+            $builder = $this->database->table(ModuleWorkspaceSearch::TABLE_INDEX)
+                ->whereIn('node_id', $visibleNodeIds)
+                ->whereIn('language_code', array_values(array_unique([$language, $defaultLanguage])));
+            if ($workspaceSlug !== '') {
+                $builder->where('workspace_slug', '=', $workspaceSlug);
             }
-        }
 
-        if ($from !== '') {
-            $builder->where('published_at', '>=', $from . ' 00:00:00');
-        }
-
-        if ($to !== '') {
-            $builder->where('published_at', '<=', $to . ' 23:59:59');
-        }
-
-        foreach ($this->terms($query) as $term) {
-            $needle = '%' . $term . '%';
-            $builder->whereNested(static function (QueryBuilder $nested) use ($needle): void {
-                $nested->where('normalized_text', 'LIKE', $needle)
-                ->orWhereRaw('LOWER(author_name) LIKE ?', [$needle]);
-            });
-        }
-
-        $preferred = [];
-        foreach (WorkspaceValue::rows($builder->get()) as $row) {
-            $nodeId = WorkspaceValue::int($row['node_id'] ?? 0);
-            $rowLanguage = strtolower(WorkspaceValue::string($row['language_code'] ?? ''));
-            if (!isset($preferred[$nodeId]) || $rowLanguage === $language) {
-                $preferred[$nodeId] = $row;
+            if ($author !== '') {
+                if (ctype_digit($author)) {
+                    $builder->where('author_user_id', '=', (int)$author);
+                } else {
+                    $builder->whereRaw('LOWER(author_name) LIKE ?', ['%' . mb_strtolower($author) . '%']);
+                }
             }
+
+            if ($from !== '') {
+                $builder->where('published_at', '>=', $from . ' 00:00:00');
+            }
+
+            if ($to !== '') {
+                $builder->where('published_at', '<=', $to . ' 23:59:59');
+            }
+
+            foreach ($this->terms($query) as $term) {
+                $needle = '%' . $term . '%';
+                $builder->whereNested(static function (QueryBuilder $nested) use ($needle): void {
+                    $nested->where('normalized_text', 'LIKE', $needle)
+                        ->orWhereRaw('LOWER(author_name) LIKE ?', [$needle]);
+                });
+            }
+
+            $preferred = [];
+            foreach (WorkspaceValue::rows($builder->get()) as $row) {
+                $nodeId = WorkspaceValue::int($row['node_id'] ?? 0);
+                $rowLanguage = strtolower(WorkspaceValue::string($row['language_code'] ?? ''));
+                if (!isset($preferred[$nodeId]) || $rowLanguage === $language) {
+                    $preferred[$nodeId] = $row;
+                }
+            }
+
+            $rows = array_values($preferred);
+            usort($rows, fn(array $left, array $right): int => $this->compareRows($left, $right, $query));
         }
 
-        $rows = array_values($preferred);
-        usort($rows, fn(array $left, array $right): int => $this->compareRows($left, $right, $query));
-        $total = count($rows);
+        $pageResults = array_map(
+            fn(array $row): array => $this->result($row, $query),
+            $rows,
+        );
+        $results = [...$workspaceResults, ...$pageResults];
+        $total = count($results);
         $offset = ($page - 1) * $perPage;
-        $items = [];
-        foreach (array_slice($rows, $offset, $perPage) as $row) {
-            $items[] = $this->result($row, $query);
-        }
+        $items = array_values(array_slice($results, $offset, $perPage));
 
         return [
         ...$base,
@@ -180,14 +188,17 @@ final readonly class WorkspaceSearchService
      * HR: Gradi skup dopuštenih čvorova i radnih prostora prije SQL pretrage.
      * EN: Builds the allowed node and Workspace set before the SQL search.
      * @param array<string, mixed>|null $user
-     * @return array{list<int>,list<array{slug:string,name:string}>}
+     * @return array{list<int>,list<array<string,mixed>>}
      */
     private function visibleScope(?array $user, string $language, string $defaultLanguage): array
     {
         $nodeIds = [];
         $workspaces = [];
-        foreach ($this->access->visibleWorkspaces($user) as $workspace) {
-            $workspace = $this->workspaces->localizeWorkspace($workspace, $language, $defaultLanguage);
+        $visibleWorkspaces = $this->access->visibleWorkspaces($user);
+        $visibleWorkspaces = $this->presentations instanceof WorkspacePresentationRegistry
+            ? $this->presentations->many($visibleWorkspaces, $language)
+            : $this->workspaces->localizeWorkspaces($visibleWorkspaces, $language, $defaultLanguage);
+        foreach ($visibleWorkspaces as $workspace) {
             $tree = $this->access->visibleTreeForLanguages(
                 $workspace,
                 $user,
@@ -195,12 +206,69 @@ final readonly class WorkspaceSearchService
             );
             $this->collectNodeIds($tree, $nodeIds);
             $workspaces[] = [
-            'slug' => WorkspaceValue::string($workspace['slug'] ?? ''),
-            'name' => WorkspaceValue::string($workspace['name'] ?? ''),
+                'id' => WorkspaceValue::int($workspace['id'] ?? 0),
+                'slug' => WorkspaceValue::string($workspace['slug'] ?? ''),
+                'name' => WorkspaceValue::string($workspace['name'] ?? ''),
+                'description' => WorkspaceValue::string($workspace['description'] ?? ''),
             ];
         }
 
         return [array_values(array_unique($nodeIds)), $workspaces];
+    }
+
+    /**
+     * HR: Pretvara podudaranje naziva, opisa ili sluga već ACL-dopuštenog
+     *     područja u pravi rezultat, neovisno o tome ima li objavljenu stranicu.
+     * EN: Converts a name, description, or slug match from an already ACL-
+     *     authorized Workspace into a real result even when it has no page.
+     *
+     * @param list<array<string,mixed>> $workspaces
+     * @return list<array<string,mixed>>
+     */
+    private function workspaceResults(array $workspaces, string $query, string $workspaceSlug): array
+    {
+        $terms = $this->terms($query);
+        $results = [];
+        foreach ($workspaces as $workspace) {
+            $slug = WorkspaceValue::string($workspace['slug'] ?? '');
+            if ($workspaceSlug !== '' && $slug !== $workspaceSlug) {
+                continue;
+            }
+
+            $name = WorkspaceValue::string($workspace['name'] ?? $slug);
+            $description = WorkspaceValue::string($workspace['description'] ?? '');
+            $haystack = mb_strtolower($name . ' ' . $description . ' ' . $slug, 'UTF-8');
+            $matches = true;
+            foreach ($terms as $term) {
+                if (!str_contains($haystack, $term)) {
+                    $matches = false;
+                    break;
+                }
+            }
+
+            if (!$matches) {
+                continue;
+            }
+
+            $results[] = [
+                'result_type' => 'workspace',
+                'workspace_id' => WorkspaceValue::int($workspace['id'] ?? 0),
+                'workspace_slug' => $slug,
+                'workspace_name' => $name,
+                'node_id' => 0,
+                'node_slug' => '',
+                'language' => '',
+                'title' => $name,
+                'snippet' => $description,
+                'snippet_html' => $this->highlight($description, $terms),
+                'author_user_id' => 0,
+                'author_name' => '',
+                'published_at' => '',
+                'url' => $this->workspacePath($slug),
+            ];
+        }
+
+        return $results;
     }
 
     /**
@@ -270,6 +338,7 @@ final readonly class WorkspaceSearchService
         $nodeSlug = WorkspaceValue::string($row['node_slug'] ?? '');
 
         return [
+        'result_type' => 'page',
         'workspace_id' => WorkspaceValue::int($row['workspace_id'] ?? 0),
         'workspace_slug' => $workspaceSlug,
         'workspace_name' => WorkspaceValue::string($row['workspace_name'] ?? $workspaceSlug),
@@ -284,6 +353,16 @@ final readonly class WorkspaceSearchService
         'published_at' => WorkspaceValue::string($row['published_at'] ?? ''),
         'url' => $this->pagePath($workspaceSlug, $nodeSlug),
         ];
+    }
+
+    /** HR: Gradi kanonsku putanju područja. EN: Builds the canonical Workspace path. */
+    private function workspacePath(string $workspaceSlug): string
+    {
+        try {
+            return $this->urls->getPathFor('workspace.show', ['workspaceSlug' => $workspaceSlug]);
+        } catch (\Throwable) {
+            return '/' . $this->workspaceConfig->rootPath() . '/' . rawurlencode($workspaceSlug);
+        }
     }
 
     /**

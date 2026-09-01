@@ -170,6 +170,54 @@ final class WorkspaceSearchServiceTest extends TestCase
     }
 
     /**
+     * HR: Naziv područja mora biti pravi rezultat, ali tek nakon istog ACL
+     *     filtra koji štiti stranice, prijedloge i ukupan broj.
+     * EN: A Workspace name must be a real result, but only after the same ACL
+     *     filter that protects pages, suggestions, and totals.
+     */
+    public function testSearchFindsVisibleWorkspaceByNameWithoutLeakingRestrictedWorkspace(): void
+    {
+        $workspace = $this->workspace('Područje od: Dario Pinturić', 'osobno-dario', 'restricted');
+        $this->repository->replaceWorkspaceAcl((int)$workspace['id'], [
+            'user' => [2 => ['can_view' => true]],
+        ]);
+
+        $allowed = $this->search->search('Dario', 'hr', [], ['id' => 2, 'is_admin' => false]);
+        $this->assertSame(1, $allowed['total']);
+        $this->assertSame('workspace', $allowed['items'][0]['result_type']);
+        $this->assertSame('Područje od: Dario Pinturić', $allowed['items'][0]['title']);
+        $this->assertSame('/workspace/osobno-dario/', $allowed['items'][0]['url']);
+
+        $suggestions = $this->search->suggest('Dario', 'hr', ['id' => 2, 'is_admin' => false]);
+        $this->assertSame('Područje od: Dario Pinturić', $suggestions[0]['title']);
+
+        $this->assertSame(0, $this->search->search('Dario', 'hr')['total']);
+        $this->assertSame(
+            0,
+            $this->search->search('Dario', 'hr', [], ['id' => 3, 'is_admin' => false])['total'],
+        );
+    }
+
+    /** HR: Naslov objavljene stranice ostaje pretraživ neovisno o tekstu tijela. EN: A published page title remains searchable independently of its body text. */
+    public function testSearchFindsPublishedPageByTitle(): void
+    {
+        $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
+        $node = $this->page(
+            $workspace,
+            'Jedinstveni naslov stranice',
+            'jedinstveni-naslov',
+            'Tijelo bez traženih riječi',
+        );
+
+        $result = $this->search->search('Jedinstveni naslov', 'hr');
+
+        $this->assertSame(1, $result['total']);
+        $this->assertSame('page', $result['items'][0]['result_type']);
+        $this->assertSame((int)$node['id'], $result['items'][0]['node_id']);
+        $this->assertSame('Jedinstveni naslov stranice', $result['items'][0]['title']);
+    }
+
+    /**
      * HR: Dokazuje da se jezični retci ne prepisuju te da ciljana obnova jednog
      *     područja uklanja samo njegove zastarjele objave.
      * EN: Proves that language rows do not overwrite each other and that a

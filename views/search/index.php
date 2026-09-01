@@ -23,6 +23,14 @@ $query = is_scalar($result['query'] ?? null) ? (string)$result['query'] : '';
 $total = is_numeric($result['total'] ?? null) ? (int)$result['total'] : 0;
 $page = is_numeric($result['page'] ?? null) ? (int)$result['page'] : 1;
 $pages = is_numeric($result['pages'] ?? null) ? (int)$result['pages'] : 0;
+$pageNumbers = $pages > 0
+    ? array_values(array_unique([
+        1,
+        ...range(max(1, $page - 2), min($pages, $page + 2)),
+        $pages,
+    ]))
+    : [];
+sort($pageNumbers);
 ?>
 
 <link rel="stylesheet" href="<?= $this->escape($assetsCssPath) ?>">
@@ -127,15 +135,21 @@ $pages = is_numeric($result['pages'] ?? null) ? (int)$result['pages'] : 0;
                             </a>
                         </h2>
                         <p class="small text-muted mb-2">
-                            <?= $this->escape(WorkspaceValue::string($item['workspace_name'] ?? '')) ?>
-                            <?php if (WorkspaceValue::string($item['author_name'] ?? '') !== '') : ?>
-                                · <?= $this->escape(WorkspaceValue::string($item['author_name'])) ?>
-                            <?php endif; ?>
-                            <?php if (WorkspaceValue::string($item['published_at'] ?? '') !== '') : ?>
-                                · <?= $this->escape(WorkspaceValue::string($item['published_at'])) ?>
+                            <?php if (WorkspaceValue::string($item['result_type'] ?? 'page') === 'workspace') : ?>
+                                <span class="badge text-bg-secondary"><?= $this->escape(__('Workspace')) ?></span>
+                            <?php else : ?>
+                                <?= $this->escape(WorkspaceValue::string($item['workspace_name'] ?? '')) ?>
+                                <?php if (WorkspaceValue::string($item['author_name'] ?? '') !== '') : ?>
+                                    · <?= $this->escape(WorkspaceValue::string($item['author_name'])) ?>
+                                <?php endif; ?>
+                                <?php if (WorkspaceValue::string($item['published_at'] ?? '') !== '') : ?>
+                                    · <?= $this->escape(WorkspaceValue::string($item['published_at'])) ?>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </p>
-                        <p class="mb-0"><?= WorkspaceValue::string($item['snippet_html'] ?? '') ?></p>
+                        <?php if (WorkspaceValue::string($item['snippet_html'] ?? '') !== '') : ?>
+                            <p class="mb-0"><?= WorkspaceValue::string($item['snippet_html'] ?? '') ?></p>
+                        <?php endif; ?>
                     </div>
                 </article>
             <?php endforeach; ?>
@@ -143,16 +157,40 @@ $pages = is_numeric($result['pages'] ?? null) ? (int)$result['pages'] : 0;
 
         <?php if ($pages > 1) : ?>
             <nav class="mt-4" aria-label="<?= $this->escape(__('Result pages')) ?>">
-                <ul class="pagination">
-                    <?php for ($number = 1; $number <= $pages; ++$number) : ?>
+                <ul class="pagination flex-wrap">
+                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                        <?php $params = [...$paginationQuery, 'page' => max(1, $page - 1)]; ?>
+                        <a
+                            class="page-link"
+                            href="<?= $this->escape($searchPath . '?' . http_build_query($params)) ?>"
+                            aria-label="<?= $this->escape(__('Previous page')) ?>"
+                        >&lsaquo;</a>
+                    </li>
+                    <?php $previousNumber = 0; ?>
+                    <?php foreach ($pageNumbers as $number) : ?>
+                        <?php if ($previousNumber > 0 && $number > $previousNumber + 1) : ?>
+                            <li class="page-item disabled" aria-hidden="true">
+                                <span class="page-link">…</span>
+                            </li>
+                        <?php endif; ?>
                         <?php $params = [...$paginationQuery, 'page' => $number]; ?>
                         <li class="page-item <?= $number === $page ? 'active' : '' ?>">
                             <a
                                 class="page-link"
                                 href="<?= $this->escape($searchPath . '?' . http_build_query($params)) ?>"
+                                <?= $number === $page ? 'aria-current="page"' : '' ?>
                             ><?= $this->escape((string)$number) ?></a>
                         </li>
-                    <?php endfor; ?>
+                        <?php $previousNumber = $number; ?>
+                    <?php endforeach; ?>
+                    <li class="page-item <?= $page >= $pages ? 'disabled' : '' ?>">
+                        <?php $params = [...$paginationQuery, 'page' => min($pages, $page + 1)]; ?>
+                        <a
+                            class="page-link"
+                            href="<?= $this->escape($searchPath . '?' . http_build_query($params)) ?>"
+                            aria-label="<?= $this->escape(__('Next page')) ?>"
+                        >&rsaquo;</a>
+                    </li>
                 </ul>
             </nav>
         <?php endif; ?>

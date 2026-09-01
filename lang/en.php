@@ -18,6 +18,8 @@ return [
     'Results found: %d' => 'Results found: %d',
     'No results match the selected filters.' => 'No results match the selected filters.',
     'Result pages' => 'Result pages',
+    'Previous page' => 'Previous page',
+    'Next page' => 'Next page',
     'Enter at least %d characters.' => 'Enter at least %d characters.',
     'Pages indexed: %d; stale rows removed: %d.' => 'Pages indexed: %d; stale rows removed: %d.',
     'Migration created: ' => 'Migration created: ',

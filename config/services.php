@@ -7,6 +7,7 @@ use AaiEduHr\HeartPhrameModuleEditorHtml\Service\EditorPublishedVersionProviderI
 use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceAccessService;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceConfig;
+use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspacePresentationRegistry;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceRepository;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceWorkflowService;
 use AaiEduHr\SimbiozaModuleWorkspaceSearch\Command\HpWorkspaceSearchCommand;
@@ -58,6 +59,7 @@ $services = [
             $container->get(WorkspaceSearchConfig::class),
             $container->get(WorkspaceSearchIndexer::class),
             $container->get(UrlGenerator::class),
+            $container->get(WorkspacePresentationRegistry::class),
         ),
     WorkspaceSearchModuleViewRenderer::class =>
         static fn(ContainerInterface $container): WorkspaceSearchModuleViewRenderer =>

@@ -20,12 +20,20 @@ iz modula.
 Za svaki web ili API zahtjev servis:
 
 1. izlista područja vidljiva izričitom korisniku, odnosno javna područja gostu;
-2. izgradi vidljivo stablo na traženom i fallback jeziku;
-3. primijeni naslijeđena ograničenja čvora i ukloni nedostupne potomke;
-4. ograniči SQL kandidate na dobivene ID-eve čvorova;
-5. primijeni tekstualni i opcionalne filtre područja, autora i datuma;
-6. odabere traženi locale ili točno objavljeni fallback zadanog jezika sitea;
-7. tek tada izračuna broj, isječke, isticanje i straničenje.
+2. lokalizira nazive i opise područja te traži naziv, opis i slug samo u tom
+   ACL-dopuštenom skupu;
+3. izgradi vidljivo stablo na traženom i fallback jeziku;
+4. primijeni naslijeđena ograničenja čvora i ukloni nedostupne potomke;
+5. ograniči SQL kandidate na dobivene ID-eve čvorova;
+6. pretraži naslov i tekst točno objavljene stranice te primijeni opcionalne
+   filtre područja, autora i datuma;
+7. odabere traženi locale ili točno objavljeni fallback zadanog jezika sitea;
+8. tek tada spoji rezultate područja i stranica te izračuna broj, isječke,
+   isticanje i straničenje.
+
+Podudaranje naziva područja pravi je rezultat i kada područje još nema
+objavljenu stranicu. Naslov objavljene stranice ostaje pretraživ neovisno o
+tekstu njezina tijela.
 
 Indeks namjerno ne sprema odluku o ovlaštenju jer se korisnici, grupe i
 naslijeđena ograničenja mogu promijeniti bez ponovnog indeksiranja teksta.
