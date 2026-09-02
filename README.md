@@ -11,7 +11,7 @@ integration.
 
 Required, in enable order:
 
-1. `aaieduhr/heartphrame-framework` (`^0.0.24`)
+1. `aaieduhr/heartphrame-framework` (`^0.0.25`)
 2. `aaieduhr/heartphrame-module-orm` (`^0.1.0`)
 3. `aaieduhr/heartphrame-module-menu` (`^0.1.0`)
 4. `aaieduhr/heartphrame-module-auth` (`^0.1.0`)
@@ -109,5 +109,5 @@ rebuilds the index.
 - [Testing on three databases](docs/testing_en.md)
 - [Backup integration](docs/backup_en.md)
 
-The Framework uses `^0.0.24` and all internal modules use the compatible
+The Framework uses `^0.0.25` and all internal modules use the compatible
 `^0.1.0` release line. Do not pin one internal module to an older commit.

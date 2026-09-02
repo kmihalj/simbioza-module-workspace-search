@@ -11,7 +11,7 @@ integraciji.
 
 Obavezno, redoslijedom uključivanja:
 
-1. `aaieduhr/heartphrame-framework` (`^0.0.24`)
+1. `aaieduhr/heartphrame-framework` (`^0.0.25`)
 2. `aaieduhr/heartphrame-module-orm` (`^0.1.0`)
 3. `aaieduhr/heartphrame-module-menu` (`^0.1.0`)
 4. `aaieduhr/heartphrame-module-auth` (`^0.1.0`)
@@ -107,5 +107,5 @@ obnavlja indeks.
 - [Testiranje na tri baze](docs/testing_hr.md)
 - [Integracija backupa](docs/backup_hr.md)
 
-Framework koristi `^0.0.24`, a svi interni moduli kompatibilnu liniju izdanja
+Framework koristi `^0.0.25`, a svi interni moduli kompatibilnu liniju izdanja
 `^0.1.0`. U ovom paketu nemojte vezati jedan interni modul uz stariji commit.
