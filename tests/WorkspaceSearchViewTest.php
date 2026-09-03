@@ -33,4 +33,15 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString("=== 'workspace'", $view);
         $this->assertStringContainsString("__('Workspace')", $view);
     }
+
+    /** HR: Filter ne ispisuje stotine osobnih područja nego jednu skupnu mogućnost. EN: The filter presents one aggregate choice instead of hundreds of personal Workspaces. */
+    public function testWorkspaceFilterAggregatesPersonalWorkspaces(): void
+    {
+        $view = file_get_contents(dirname(__DIR__) . '/views/search/index.php');
+
+        $this->assertIsString($view);
+        $this->assertStringContainsString('PERSONAL_WORKSPACES_FILTER', $view);
+        $this->assertStringContainsString("__('Personal Workspaces')", $view);
+        $this->assertStringContainsString("['is_personal_workspace']", $view);
+    }
 }

@@ -22,6 +22,8 @@ use HeartPhrame\Routing\UrlGenerator;
  */
 final readonly class WorkspaceSearchService
 {
+    public const PERSONAL_WORKSPACES_FILTER = '__personal__';
+
     /**
  * HR: Prima izvedeni indeks, jedinstveni Workspace ACL servis i konfiguraciju
  *     potrebnu za prijenosnu pretragu i sigurne poveznice rezultata.
@@ -81,23 +83,41 @@ final readonly class WorkspaceSearchService
         ],
         'workspaces' => [],
         ];
-        if (mb_strlen($query) < $this->config->minimumQueryLength()) {
+        $hasSearchQuery = mb_strlen($query) >= $this->config->minimumQueryLength();
+        [$visibleNodeIds, $visibleWorkspaces] = $this->visibleScope(
+            $user,
+            $language,
+            $defaultLanguage,
+            $hasSearchQuery,
+        );
+        $base['workspaces'] = $visibleWorkspaces;
+        if (!$hasSearchQuery) {
             return $base;
         }
 
         $this->indexer->refreshIfDue();
-        [$visibleNodeIds, $visibleWorkspaces] = $this->visibleScope($user, $language, $defaultLanguage);
-        $base['workspaces'] = $visibleWorkspaces;
         $workspaceResults = $author === '' && $from === '' && $to === ''
             ? $this->workspaceResults($visibleWorkspaces, $query, $workspaceSlug)
             : [];
+        $personalWorkspaceSlugs = array_values(array_filter(array_map(
+            static fn(array $workspace): string => (bool)($workspace['is_personal_workspace'] ?? false)
+                ? WorkspaceValue::string($workspace['slug'] ?? '')
+                : '',
+            $visibleWorkspaces,
+        )));
 
         $rows = [];
         if ($visibleNodeIds !== []) {
             $builder = $this->database->table(ModuleWorkspaceSearch::TABLE_INDEX)
                 ->whereIn('node_id', $visibleNodeIds)
                 ->whereIn('language_code', array_values(array_unique([$language, $defaultLanguage])));
-            if ($workspaceSlug !== '') {
+            if ($workspaceSlug === self::PERSONAL_WORKSPACES_FILTER) {
+                if ($personalWorkspaceSlugs === []) {
+                    $builder->where('workspace_slug', '=', '__no_visible_personal_workspace__');
+                } else {
+                    $builder->whereIn('workspace_slug', $personalWorkspaceSlugs);
+                }
+            } elseif ($workspaceSlug !== '') {
                 $builder->where('workspace_slug', '=', $workspaceSlug);
             }
 
@@ -190,8 +210,12 @@ final readonly class WorkspaceSearchService
      * @param array<string, mixed>|null $user
      * @return array{list<int>,list<array<string,mixed>>}
      */
-    private function visibleScope(?array $user, string $language, string $defaultLanguage): array
-    {
+    private function visibleScope(
+        ?array $user,
+        string $language,
+        string $defaultLanguage,
+        bool $collectNodeIds = true,
+    ): array {
         $nodeIds = [];
         $workspaces = [];
         $visibleWorkspaces = $this->access->visibleWorkspaces($user);
@@ -199,17 +223,21 @@ final readonly class WorkspaceSearchService
             ? $this->presentations->many($visibleWorkspaces, $language)
             : $this->workspaces->localizeWorkspaces($visibleWorkspaces, $language, $defaultLanguage);
         foreach ($visibleWorkspaces as $workspace) {
-            $tree = $this->access->visibleTreeForLanguages(
-                $workspace,
-                $user,
-                array_values(array_unique([$language, $defaultLanguage])),
-            );
-            $this->collectNodeIds($tree, $nodeIds);
+            if ($collectNodeIds) {
+                $tree = $this->access->visibleTreeForLanguages(
+                    $workspace,
+                    $user,
+                    array_values(array_unique([$language, $defaultLanguage])),
+                );
+                $this->collectNodeIds($tree, $nodeIds);
+            }
+
             $workspaces[] = [
                 'id' => WorkspaceValue::int($workspace['id'] ?? 0),
                 'slug' => WorkspaceValue::string($workspace['slug'] ?? ''),
                 'name' => WorkspaceValue::string($workspace['name'] ?? ''),
                 'description' => WorkspaceValue::string($workspace['description'] ?? ''),
+                'is_personal_workspace' => (bool)($workspace['is_personal_workspace'] ?? false),
             ];
         }
 
@@ -231,7 +259,13 @@ final readonly class WorkspaceSearchService
         $results = [];
         foreach ($workspaces as $workspace) {
             $slug = WorkspaceValue::string($workspace['slug'] ?? '');
-            if ($workspaceSlug !== '' && $slug !== $workspaceSlug) {
+            $isPersonal = (bool)($workspace['is_personal_workspace'] ?? false);
+            if (
+                ($workspaceSlug === self::PERSONAL_WORKSPACES_FILTER && !$isPersonal)
+                || ($workspaceSlug !== ''
+                    && $workspaceSlug !== self::PERSONAL_WORKSPACES_FILTER
+                    && $slug !== $workspaceSlug)
+            ) {
                 continue;
             }
 

@@ -198,6 +198,17 @@ final class WorkspaceSearchServiceTest extends TestCase
         );
     }
 
+    /** HR: Filter područja puni se i prije unosa minimalnog broja znakova. EN: The Workspace filter is populated before the minimum query length is entered. */
+    public function testEmptyQueryStillReturnsVisibleWorkspaceOptions(): void
+    {
+        $this->workspace('Dokumentacija', 'docs', 'public');
+
+        $result = $this->search->search('', 'hr');
+
+        $this->assertSame(0, $result['total']);
+        $this->assertSame(['docs'], array_column($result['workspaces'], 'slug'));
+    }
+
     /** HR: Naslov objavljene stranice ostaje pretraživ neovisno o tekstu tijela. EN: A published page title remains searchable independently of its body text. */
     public function testSearchFindsPublishedPageByTitle(): void
     {

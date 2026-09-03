@@ -30,7 +30,7 @@ dependencies rather than optional suggestions.
 ## Installation
 
 ```bash
-composer require aaieduhr/simbioza-module-workspace-search:^0.1.0
+composer require aaieduhr/simbioza-module-workspace-search:^0.1.3
 vendor/bin/hph workspace-search:install-migration
 vendor/bin/hph orm-migrate:up
 vendor/bin/hph workspace-search:rebuild
@@ -49,6 +49,12 @@ the application's configured base path).
 - publishing author;
 - requested language with site-default fallback;
 - optional Workspace and publication-date filters.
+
+The full search form lists ordinary Workspaces visible to the current visitor.
+All visible personal Workspaces are represented by one **Personal Workspaces**
+choice instead of one option per user. The list is available before a query is
+entered, and selecting the aggregate still applies the normal Workspace and
+page ACL checks.
 
 Workspace matches are returned even when the Workspace has no published page.
 Drafts, archived workflows, deleted pages, and inaccessible descendants are

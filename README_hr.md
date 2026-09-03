@@ -30,7 +30,7 @@ ovisnosti, a ne opcionalni prijedlozi.
 ## Instalacija
 
 ```bash
-composer require aaieduhr/simbioza-module-workspace-search:^0.1.0
+composer require aaieduhr/simbioza-module-workspace-search:^0.1.3
 vendor/bin/hph workspace-search:install-migration
 vendor/bin/hph orm-migrate:up
 vendor/bin/hph workspace-search:rebuild
@@ -42,11 +42,19 @@ bazne putanje aplikacije.
 
 ## Što se pretražuje
 
+- naziv, opis i slug vidljivog područja, uključujući lokalizirano ime vlasnika
+  osobnog područja kada ga isporuči prezentacijski provider;
 - naslov objavljene stranice;
 - sanitizirani obični tekst točne objavljene Editor verzije;
 - autor objave;
 - traženi jezik uz fallback na zadani jezik sitea;
 - opcionalni filtri područja i datuma objave.
+
+Puna forma pretrage prikazuje obična područja koja su vidljiva trenutačnom
+posjetitelju. Sva vidljiva osobna područja objedinjena su u jednu mogućnost
+**Osobna područja**, umjesto zasebne stavke za svakog korisnika. Popis je
+dostupan i prije unosa upita, a skupni filtar i dalje primjenjuje uobičajene
+ACL provjere područja i stranica.
 
 Nacrti, arhivirani workflowi, obrisane stranice i nedostupni potomci nikada se
 ne vraćaju. Gost dobiva samo javne stranice. Prijavljeni web korisnik i vlasnik

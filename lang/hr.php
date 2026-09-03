@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'Personal Workspaces' => 'Osobna područja',
     'Workspace Search' => 'Pretraga područja',
     'Search workspaces' => 'Pretraži područja',
     'Search' => 'Pretraži',

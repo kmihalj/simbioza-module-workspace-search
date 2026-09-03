@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'Personal Workspaces' => 'Personal Workspaces',
     'Workspace Search' => 'Workspace Search',
     'Search workspaces' => 'Search workspaces',
     'Search' => 'Search',

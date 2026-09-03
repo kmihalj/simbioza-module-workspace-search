@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceValue;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchService;
 
 /**
  * HR: Rezultati pretrage već su ACL-filtrirani u servisu; view samo prikazuje siguran model.
@@ -31,6 +32,11 @@ $pageNumbers = $pages > 0
     ]))
     : [];
 sort($pageNumbers);
+$personalWorkspaceFilter = WorkspaceSearchService::PERSONAL_WORKSPACES_FILTER;
+$hasPersonalWorkspaces = array_filter(
+    $workspaces,
+    static fn(array $workspace): bool => (bool)($workspace['is_personal_workspace'] ?? false),
+) !== [];
 ?>
 
 <link rel="stylesheet" href="<?= $this->escape($assetsCssPath) ?>">
@@ -64,6 +70,9 @@ sort($pageNumbers);
                     <select class="form-select" id="workspace-search-workspace" name="workspace">
                         <option value=""><?= $this->escape(__('All visible workspaces')) ?></option>
                         <?php foreach ($workspaces as $workspace) : ?>
+                            <?php if ((bool)($workspace['is_personal_workspace'] ?? false)) {
+                                continue;
+                            } ?>
                             <?php
                             $slug = WorkspaceValue::string($workspace['slug'] ?? '');
                             $name = WorkspaceValue::string($workspace['name'] ?? '') ?: $slug;
@@ -73,6 +82,12 @@ sort($pageNumbers);
                                 <?= ($filters['workspace'] ?? '') === $slug ? 'selected' : '' ?>
                             ><?= $this->escape($name) ?></option>
                         <?php endforeach; ?>
+                        <?php if ($hasPersonalWorkspaces) : ?>
+                            <option
+                                value="<?= $this->escape($personalWorkspaceFilter) ?>"
+                                <?= ($filters['workspace'] ?? '') === $personalWorkspaceFilter ? 'selected' : '' ?>
+                            ><?= $this->escape(__('Personal Workspaces')) ?></option>
+                        <?php endif; ?>
                     </select>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3 d-grid">
