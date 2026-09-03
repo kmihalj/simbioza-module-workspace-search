@@ -62,6 +62,7 @@ final readonly class WorkspaceSearchService
             $this->config->maximumResultsPerPage(),
         );
         $workspaceSlug = $this->string($filters['workspace'] ?? '');
+        $embedded = $this->string($filters['embedded'] ?? '') === '1';
         $author = $this->string($filters['author'] ?? '');
         $from = $this->date($filters['from'] ?? '');
         $to = $this->date($filters['to'] ?? '');
@@ -77,6 +78,7 @@ final readonly class WorkspaceSearchService
         'items' => [],
         'filters' => [
         'workspace' => $workspaceSlug,
+        'embedded' => $embedded ? '1' : '',
         'author' => $author,
         'from' => $from,
         'to' => $to,
@@ -323,16 +325,40 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Rastavlja normalizirani upit u jedinstvene pojmove za AND pretragu.
-     * EN: Splits the normalized query into unique terms for AND search.
+     * HR: Bez operatora cijeli upit tretira kao frazu. Navodnici i prefiks `+`
+     *     uključuju napredni način u kojem se svi pojmovi i fraze traže AND
+     *     semantikom, redom kojim su uneseni.
+     * EN: Without operators, treats the whole query as one phrase. Quotes and
+     *     the `+` prefix enable advanced mode where every term and phrase is
+     *     required with AND semantics, in input order.
      * @return list<string>
      */
     private function terms(string $query): array
     {
-        return array_values(array_unique(array_filter(
-            preg_split('/\s+/u', mb_strtolower($query, 'UTF-8')) ?: [],
-            static fn(string $term): bool => $term !== '',
-        )));
+        $normalized = trim(mb_strtolower($query, 'UTF-8'));
+        if ($normalized === '') {
+            return [];
+        }
+
+        if (!str_contains($normalized, '+') && !str_contains($normalized, '"')) {
+            return [$normalized];
+        }
+
+        preg_match_all('/\+?"[^"]*"|\+?[^\s"]+/u', $normalized, $matches);
+        $terms = [];
+        foreach ($matches[0] as $match) {
+            $term = ltrim($match, '+');
+            if (str_starts_with($term, '"') && str_ends_with($term, '"')) {
+                $term = substr($term, 1, -1);
+            }
+
+            $term = trim($term);
+            if ($term !== '' && !in_array($term, $terms, true)) {
+                $terms[] = $term;
+            }
+        }
+
+        return $terms !== [] ? $terms : [$normalized];
     }
 
     /**
@@ -448,9 +474,16 @@ final readonly class WorkspaceSearchService
     private function highlight(string $snippet, array $terms): string
     {
         $escaped = htmlspecialchars($snippet, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        foreach ($terms as $term) {
-            $quoted = preg_quote(htmlspecialchars($term, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), '/');
-            $escaped = (string)preg_replace('/(' . $quoted . ')/iu', '<mark>$1</mark>', $escaped);
+        $quotedTerms = array_values(array_unique(array_map(
+            static fn(string $term): string => preg_quote(
+                htmlspecialchars($term, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                '/',
+            ),
+            array_filter($terms, static fn(string $term): bool => $term !== ''),
+        )));
+        usort($quotedTerms, static fn(string $left, string $right): int => strlen($right) <=> strlen($left));
+        if ($quotedTerms !== []) {
+            return (string)preg_replace('/(' . implode('|', $quotedTerms) . ')/iu', '<mark>$1</mark>', $escaped);
         }
 
         return $escaped;

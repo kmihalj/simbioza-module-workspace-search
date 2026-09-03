@@ -30,7 +30,7 @@ ovisnosti, a ne opcionalni prijedlozi.
 ## Instalacija
 
 ```bash
-composer require aaieduhr/simbioza-module-workspace-search:^0.1.3
+composer require aaieduhr/simbioza-module-workspace-search:^0.1.4
 vendor/bin/hph workspace-search:install-migration
 vendor/bin/hph orm-migrate:up
 vendor/bin/hph workspace-search:rebuild
@@ -56,6 +56,11 @@ posjetitelju. Sva vidljiva osobna područja objedinjena su u jednu mogućnost
 dostupan i prije unosa upita, a skupni filtar i dalje primjenjuje uobičajene
 ACL provjere područja i stranica.
 
+Više riječi bez operatora traži se kao jedna točna fraza. Napredni upit koristi
+`+riječ` i `+"više riječi"`; tada je svaka navedena riječ i fraza obavezna AND
+semantikom, redom kojim je unesena. Primjer `+Dio +1 +"Dio 2"` zahtijeva sva
+tri izraza. Ista je uputa prikazana ispod obje forme za pretragu.
+
 Nacrti, arhivirani workflowi, obrisane stranice i nedostupni potomci nikada se
 ne vraćaju. Gost dobiva samo javne stranice. Prijavljeni web korisnik i vlasnik
 API ključa dobivaju samo sadržaj dopušten efektivnim Workspace i naslijeđenim
@@ -63,9 +68,11 @@ page ACL-om. Filtriranje se događa prije brojanja, isječaka, straničenja i
 prijedloga, pa metapodaci ograničene stranice ne cure.
 
 HTML Editor na Workspace stranici može umetnuti pretragu trenutačnog područja.
-Ona dinamično koristi isti ACL-filtrirani endpoint prijedloga, ali serverski
-ograničava rezultate na slug tog područja. Ne ovisi o tekstu ili skrivenom
-polju koje bi posjetitelj mogao izmijeniti radi pristupa drugom sadržaju.
+Ta kompaktna forma izravno otvara punu stranicu rezultata bez preklapajućeg
+popisa prijedloga. Forma rezultata prikazuje naziv izvornog područja kao fiksni
+opseg umjesto globalnog odabira područja. Poslužitelj i dalje provjerava zadani
+slug područja i sva uobičajena ACL pravila; izmjena poslanog polja ne može
+otkriti drugo nedostupno područje.
 
 ## Rad s indeksom
 

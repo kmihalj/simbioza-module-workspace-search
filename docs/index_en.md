@@ -70,18 +70,22 @@ Editor data.
 Search uses ordinary ORM query-builder operations supported by SQLite,
 PostgreSQL, and MySQL/MariaDB. No database vendor owns the feature.
 
+Plain multi-word input is one exact phrase. Once `+` or quotes are used, each
+token and quoted phrase becomes required with AND semantics while preserving
+input order; `+Part +1 +"Part 2"` therefore requires all three expressions.
+
 The index is deliberately rebuilt rather than archived. See
 [Backup integration](backup_en.md).
 
 ## Embedded single-Workspace search
 
 The Workspace **Workspace search** dynamic block uses the same index and ACL
-service as the full page and API, but always adds the current Workspace slug to
-the request. Results from another Workspace therefore cannot appear even when
-the same user would otherwise be allowed to view them. Input is filtered
-dynamically after at least two characters; title, URL, and Workspace name come
-from a safe JSON response and are inserted into the DOM as text, never as
-untrusted HTML.
+service as the full page and API, but always adds the current Workspace slug and
+an embedded-search marker to the request. Results from another Workspace
+therefore cannot appear even when the same user would otherwise be allowed to
+view them. The compact form submits without a live suggestion overlay. On the
+result page the originating Workspace is rendered as a named, read-only scope;
+pagination preserves that scope.
 
 Permanent Workspace deletion emits the cleanup event before source rows vanish.
 Search removes rows with that `workspace_id` immediately; a later rebuild remains

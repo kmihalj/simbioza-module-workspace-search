@@ -37,6 +37,19 @@ $hasPersonalWorkspaces = array_filter(
     $workspaces,
     static fn(array $workspace): bool => (bool)($workspace['is_personal_workspace'] ?? false),
 ) !== [];
+$selectedWorkspaceSlug = WorkspaceValue::string($filters['workspace'] ?? '');
+$embeddedWorkspaceSearch = WorkspaceValue::string($filters['embedded'] ?? '') === '1'
+    && $selectedWorkspaceSlug !== ''
+    && $selectedWorkspaceSlug !== $personalWorkspaceFilter;
+$selectedWorkspaceName = $selectedWorkspaceSlug;
+if ($embeddedWorkspaceSearch) {
+    foreach ($workspaces as $workspace) {
+        if (WorkspaceValue::string($workspace['slug'] ?? '') === $selectedWorkspaceSlug) {
+            $selectedWorkspaceName = WorkspaceValue::string($workspace['name'] ?? '') ?: $selectedWorkspaceSlug;
+            break;
+        }
+    }
+}
 ?>
 
 <link rel="stylesheet" href="<?= $this->escape($assetsCssPath) ?>">
@@ -67,28 +80,45 @@ $hasPersonalWorkspaces = array_filter(
                     <label class="form-label" for="workspace-search-workspace">
                         <?= $this->escape(__('Workspace')) ?>
                     </label>
-                    <select class="form-select" id="workspace-search-workspace" name="workspace">
-                        <option value=""><?= $this->escape(__('All visible workspaces')) ?></option>
-                        <?php foreach ($workspaces as $workspace) : ?>
-                            <?php if ((bool)($workspace['is_personal_workspace'] ?? false)) {
-                                continue;
-                            } ?>
-                            <?php
-                            $slug = WorkspaceValue::string($workspace['slug'] ?? '');
-                            $name = WorkspaceValue::string($workspace['name'] ?? '') ?: $slug;
-                            ?>
-                            <option
-                                value="<?= $this->escape($slug) ?>"
-                                <?= ($filters['workspace'] ?? '') === $slug ? 'selected' : '' ?>
-                            ><?= $this->escape($name) ?></option>
-                        <?php endforeach; ?>
-                        <?php if ($hasPersonalWorkspaces) : ?>
-                            <option
-                                value="<?= $this->escape($personalWorkspaceFilter) ?>"
-                                <?= ($filters['workspace'] ?? '') === $personalWorkspaceFilter ? 'selected' : '' ?>
-                            ><?= $this->escape(__('Personal Workspaces')) ?></option>
-                        <?php endif; ?>
-                    </select>
+                    <?php if ($embeddedWorkspaceSearch) : ?>
+                        <div
+                            class="form-control"
+                            id="workspace-search-workspace"
+                            aria-readonly="true"
+                        ><?= $this->escape($selectedWorkspaceName) ?></div>
+                        <input
+                            type="hidden"
+                            name="workspace"
+                            value="<?= $this->escape($selectedWorkspaceSlug) ?>"
+                        >
+                        <input type="hidden" name="embedded" value="1">
+                        <div class="form-text">
+                            <?= $this->escape(__('Search is limited to this Workspace.')) ?>
+                        </div>
+                    <?php else : ?>
+                        <select class="form-select" id="workspace-search-workspace" name="workspace">
+                            <option value=""><?= $this->escape(__('All visible workspaces')) ?></option>
+                            <?php foreach ($workspaces as $workspace) : ?>
+                                <?php if ((bool)($workspace['is_personal_workspace'] ?? false)) {
+                                    continue;
+                                } ?>
+                                <?php
+                                $slug = WorkspaceValue::string($workspace['slug'] ?? '');
+                                $name = WorkspaceValue::string($workspace['name'] ?? '') ?: $slug;
+                                ?>
+                                <option
+                                    value="<?= $this->escape($slug) ?>"
+                                    <?= $selectedWorkspaceSlug === $slug ? 'selected' : '' ?>
+                                ><?= $this->escape($name) ?></option>
+                            <?php endforeach; ?>
+                            <?php if ($hasPersonalWorkspaces) : ?>
+                                <option
+                                    value="<?= $this->escape($personalWorkspaceFilter) ?>"
+                                    <?= $selectedWorkspaceSlug === $personalWorkspaceFilter ? 'selected' : '' ?>
+                                ><?= $this->escape(__('Personal Workspaces')) ?></option>
+                            <?php endif; ?>
+                        </select>
+                    <?php endif; ?>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3 d-grid">
                     <button class="btn btn-primary btn-lg" type="submit"><?= $this->escape(__('Search')) ?></button>
@@ -125,6 +155,15 @@ $hasPersonalWorkspaces = array_filter(
                         type="date"
                         value="<?= $this->escape(WorkspaceValue::string($filters['to'] ?? '')) ?>"
                     >
+                </div>
+                <div class="col-12">
+                    <p class="form-text mb-0">
+                        <?= $this->escape(__(
+                            'Without operators, multiple words are searched as an exact phrase. '
+                            . 'Use +word and +"multiple words" for required words and phrases, '
+                            . 'e.g. +Part +1 +"Part 2".',
+                        )) ?>
+                    </p>
                 </div>
             </div>
         </div>

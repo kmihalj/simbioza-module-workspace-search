@@ -30,7 +30,7 @@ dependencies rather than optional suggestions.
 ## Installation
 
 ```bash
-composer require aaieduhr/simbioza-module-workspace-search:^0.1.3
+composer require aaieduhr/simbioza-module-workspace-search:^0.1.4
 vendor/bin/hph workspace-search:install-migration
 vendor/bin/hph orm-migrate:up
 vendor/bin/hph workspace-search:rebuild
@@ -56,6 +56,12 @@ choice instead of one option per user. The list is available before a query is
 entered, and selecting the aggregate still applies the normal Workspace and
 page ACL checks.
 
+Multiple words without operators are searched as one exact phrase. Advanced
+queries use `+word` and `+"multiple words"`; every listed word and quoted phrase
+is then required with AND semantics, in the order entered. For example,
+`+Part +1 +"Part 2"` requires all three expressions. The same rule is shown
+below both search forms.
+
 Workspace matches are returned even when the Workspace has no published page.
 Drafts, archived workflows, deleted pages, and inaccessible descendants are
 never returned. Guest searches contain public Workspaces and pages only.
@@ -63,10 +69,12 @@ Authenticated web users and API-key owners receive only content allowed by
 their effective Workspace and inherited page ACL. Filtering occurs before
 totals, snippets, pagination, and suggestions, preventing metadata leaks.
 
-The HTML Editor can insert search for the current Workspace. It dynamically
-uses the same ACL-filtered suggestion endpoint while the server limits results
-to that Workspace slug. Access does not depend on text or a hidden field that
-a visitor could alter to expose another Workspace.
+The HTML Editor can insert search for the current Workspace. That compact form
+submits directly to the full result page without an overlapping suggestion
+overlay. The result form keeps the originating Workspace name visible as a
+fixed scope instead of offering the global Workspace selector. The server still
+enforces both the selected Workspace slug and every ordinary ACL check; changing
+a submitted field cannot expose another inaccessible Workspace.
 
 ## Index operations
 

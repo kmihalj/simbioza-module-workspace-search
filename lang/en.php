@@ -13,6 +13,9 @@ return [
         'Find published content that you are allowed to view.',
     'Workspace' => 'Workspace',
     'All visible workspaces' => 'All visible workspaces',
+    'Search is limited to this Workspace.' => 'Search is limited to this Workspace.',
+    'Without operators, multiple words are searched as an exact phrase. Use +word and +"multiple words" for required words and phrases, e.g. +Part +1 +"Part 2".' =>
+        'Without operators, multiple words are searched as an exact phrase. Use +word and +"multiple words" for required words and phrases, e.g. +Part +1 +"Part 2".',
     'Author' => 'Author',
     'Published from' => 'Published from',
     'Published to' => 'Published to',

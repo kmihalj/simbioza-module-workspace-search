@@ -13,6 +13,9 @@ return [
         'Pronađite objavljeni sadržaj koji smijete vidjeti.',
     'Workspace' => 'Područje',
     'All visible workspaces' => 'Sva vidljiva područja',
+    'Search is limited to this Workspace.' => 'Pretraga je ograničena na ovo područje.',
+    'Without operators, multiple words are searched as an exact phrase. Use +word and +"multiple words" for required words and phrases, e.g. +Part +1 +"Part 2".' =>
+        'Bez operatora više riječi traži se kao točna fraza. Za obavezne riječi i fraze koristite +riječ i +"više riječi", npr. +Dio +1 +"Dio 2".',
     'Author' => 'Autor',
     'Published from' => 'Objavljeno od',
     'Published to' => 'Objavljeno do',

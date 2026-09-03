@@ -19,6 +19,10 @@ biti objavljena stranica ili samo područje pronađeno po nazivu, opisu ili slug
 Puna stranica prikazuje ograničen prozor brojeva stranica s prethodnom i
 sljedećom poveznicom, ne jedan element za svaku stranicu velikog rezultata.
 
+Obična višerječna vrijednost parametra `q` točna je fraza. Upotrijebite
+`+riječ` i `+"više riječi"` kada svaka navedena riječ i fraza mora biti
+prisutna, primjerice `+Dio +1 +"Dio 2"`.
+
 ## HTTP API
 
 Instalirajte i uključite `aaieduhr/heartphrame-module-api`, pa izdajte ključ

@@ -71,6 +71,10 @@ podataka.
 Pretraga koristi obične ORM query-builder operacije koje podržavaju SQLite,
 PostgreSQL i MySQL/MariaDB. Nijedan proizvođač baze ne posjeduje funkcionalnost.
 
+Običan višerječni unos jedna je točna fraza. Kada se upotrijebi `+` ili
+navodnici, svaki pojam i fraza postaje obavezan AND semantikom uz očuvanje
+redoslijeda unosa; `+Dio +1 +"Dio 2"` zato zahtijeva sva tri izraza.
+
 Indeks se namjerno ponovno gradi umjesto arhiviranja. Vidi
 [integraciju backupa](backup_hr.md).
 
@@ -78,10 +82,11 @@ Indeks se namjerno ponovno gradi umjesto arhiviranja. Vidi
 
 Workspace dinamički blok **Pretraga područja** koristi isti indeks i isti ACL
 servis kao puna stranica i API, ali zahtjevu uvijek dodaje slug trenutačnog
-područja. Rezultati iz drugog područja zato se ne mogu pojaviti ni kada ih isti
-korisnik inače smije vidjeti. Unos se filtrira dinamično nakon najmanje dva
-znaka; naslov, URL i naziv područja dolaze iz sigurnog JSON odgovora i u DOM se
-upisuju kao tekst, ne kao nepouzdani HTML.
+područja i oznaku ugrađene pretrage. Rezultati iz drugog područja zato se ne mogu
+pojaviti ni kada ih isti korisnik inače smije vidjeti. Kompaktna forma šalje
+upit bez živog preklapajućeg popisa prijedloga. Na stranici rezultata izvorno
+područje prikazuje se kao imenovani opseg samo za čitanje, a straničenje čuva taj
+opseg.
 
 Trajno brisanje područja objavljuje događaj čišćenja prije nestanka izvornih
 redaka. Search odmah uklanja retke s tim `workspace_id`; kasnija ponovna izgradnja

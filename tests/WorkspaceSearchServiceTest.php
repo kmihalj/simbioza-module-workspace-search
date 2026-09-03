@@ -228,6 +228,43 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertSame('Jedinstveni naslov stranice', $result['items'][0]['title']);
     }
 
+    /** HR: Običan višerječni upit traži cijelu frazu. EN: A plain multi-word query searches the complete phrase. */
+    public function testPlainMultiWordQueryUsesExactPhrase(): void
+    {
+        $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
+        $this->page($workspace, 'Točna fraza', 'exact-phrase', 'Početak Dio 1 završetak');
+        $this->page($workspace, 'Razdvojeni pojmovi', 'split-terms', 'Početak Dio između 1 završetak');
+        $this->indexer->rebuild();
+
+        $result = $this->search->search('Dio 1', 'hr');
+
+        $this->assertSame(1, $result['total']);
+        $this->assertSame('Točna fraza', $result['items'][0]['title']);
+        $this->assertStringContainsString('<mark>Dio 1</mark>', (string) $result['items'][0]['snippet_html']);
+    }
+
+    /** HR: Plus i navodnici zadržavaju redoslijed obaveznih pojmova i fraza. EN: Plus and quotes preserve the order of required terms and phrases. */
+    public function testAdvancedQueryRequiresEveryTermAndQuotedPhrase(): void
+    {
+        $this->database->table(ModuleAuth::TABLE_AUTH_USERS)
+            ->where('id', '=', 1)
+            ->update(['login_identifier' => 'administrator']);
+        $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
+        $this->page($workspace, 'Potpuni rezultat', 'complete-result', 'Dio 1 sadrži i Dio 2 u nastavku.');
+        $this->page($workspace, 'Nedostaje fraza', 'missing-phrase', 'Dio 1 bez druge tražene fraze.');
+        $this->page($workspace, 'Nedostaje broj', 'missing-number', 'Dio i Dio 2 bez zasebne jedinice.');
+        $this->indexer->rebuild();
+
+        $result = $this->search->search('+Dio +1 +"Dio 2"', 'hr');
+
+        $this->assertSame(1, $result['total']);
+        $this->assertSame('Potpuni rezultat', $result['items'][0]['title']);
+        $this->assertMatchesRegularExpression(
+            '/<mark>Dio<\/mark>.*<mark>1<\/mark>.*<mark>Dio 2<\/mark>/u',
+            $result['items'][0]['snippet_html'],
+        );
+    }
+
     /**
      * HR: Dokazuje da se jezični retci ne prepisuju te da ciljana obnova jednog
      *     područja uklanja samo njegove zastarjele objave.
@@ -289,6 +326,14 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertSame('Prvi rezultat', $suggestions[0]['title']);
         $this->assertSame('/workspace/first/' . $firstNode['slug'], $suggestions[0]['url']);
         $this->assertSame('Prvo područje', $suggestions[0]['workspace']);
+
+        $embedded = $this->search->search('zajednička', 'hr', [
+            'workspace' => 'first',
+            'embedded' => '1',
+        ]);
+        $this->assertSame('1', $embedded['filters']['embedded']);
+        $this->assertSame('first', $embedded['filters']['workspace']);
+        $this->assertSame(['Prvi rezultat'], array_column($embedded['items'], 'title'));
     }
 
     /**

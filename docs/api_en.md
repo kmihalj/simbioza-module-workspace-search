@@ -19,6 +19,10 @@ represent a published page or a Workspace matched by name, description, or slug.
 The full page renders a bounded page-number window with previous/next links,
 not one control for every page in a large result set.
 
+Plain multi-word `q` values are exact phrases. Use `+word` and
+`+"multiple words"` when every listed word and phrase must be present, for
+example `+Part +1 +"Part 2"`.
+
 ## HTTP API
 
 Install and enable `aaieduhr/heartphrame-module-api`, then issue a key containing

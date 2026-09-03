@@ -44,4 +44,25 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString("__('Personal Workspaces')", $view);
         $this->assertStringContainsString("['is_personal_workspace']", $view);
     }
+
+    /** HR: Ugrađena pretraga prikazuje zaključano izvorno područje. EN: Embedded search renders its originating Workspace as a locked scope. */
+    public function testEmbeddedSearchKeepsWorkspaceScopeVisibleAndFixed(): void
+    {
+        $view = file_get_contents(dirname(__DIR__) . '/views/search/index.php');
+
+        $this->assertIsString($view);
+        $this->assertStringContainsString('$embeddedWorkspaceSearch', $view);
+        $this->assertStringContainsString('name="embedded" value="1"', $view);
+        $this->assertStringContainsString("__('Search is limited to this Workspace.')", $view);
+    }
+
+    /** HR: Forma objašnjava zadanu frazu i napredne operatore. EN: The form explains default phrase and advanced operator semantics. */
+    public function testSearchFormDocumentsPhraseSyntax(): void
+    {
+        $view = file_get_contents(dirname(__DIR__) . '/views/search/index.php');
+
+        $this->assertIsString($view);
+        $this->assertStringContainsString('Without operators, multiple words are searched as an exact phrase.', $view);
+        $this->assertStringContainsString('+word and +"multiple words"', $view);
+    }
 }
