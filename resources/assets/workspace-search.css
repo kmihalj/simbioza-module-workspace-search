@@ -16,6 +16,11 @@
     padding: 0 .08em;
 }
 
+.hph-workspace-search__scope-menu {
+    max-height: min(24rem, 55vh);
+    overflow-y: auto;
+}
+
 .hph-workspace-search-control {
     align-items: center;
     display: flex;

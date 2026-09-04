@@ -22,6 +22,8 @@ use HeartPhrame\Routing\UrlGenerator;
  */
 final readonly class WorkspaceSearchService
 {
+    public const ALL_WORKSPACES_FILTER = '__all__';
+
     public const PERSONAL_WORKSPACES_FILTER = '__personal__';
 
     /**
@@ -62,6 +64,7 @@ final readonly class WorkspaceSearchService
             $this->config->maximumResultsPerPage(),
         );
         $workspaceSlug = $this->string($filters['workspace'] ?? '');
+        $requestedWorkspaceScopes = $this->workspaceScopes($filters, $workspaceSlug);
         $embedded = $this->string($filters['embedded'] ?? '') === '1';
         $author = $this->string($filters['author'] ?? '');
         $from = $this->date($filters['from'] ?? '');
@@ -76,6 +79,7 @@ final readonly class WorkspaceSearchService
         'total' => 0,
         'pages' => 0,
         'items' => [],
+        'workspace_scopes' => [],
         'filters' => [
         'workspace' => $workspaceSlug,
         'embedded' => $embedded ? '1' : '',
@@ -93,34 +97,36 @@ final readonly class WorkspaceSearchService
             $hasSearchQuery,
         );
         $base['workspaces'] = $visibleWorkspaces;
+        $workspaceScope = $this->resolvedWorkspaceScope(
+            $requestedWorkspaceScopes,
+            $visibleWorkspaces,
+            $embedded,
+        );
+        $base['workspace_scopes'] = $workspaceScope['tokens'];
         if (!$hasSearchQuery) {
             return $base;
         }
 
         $this->indexer->refreshIfDue();
         $workspaceResults = $author === '' && $from === '' && $to === ''
-            ? $this->workspaceResults($visibleWorkspaces, $query, $workspaceSlug)
+            ? $this->workspaceResults(
+                $visibleWorkspaces,
+                $query,
+                $workspaceScope['all'] ? null : $workspaceScope['slugs'],
+            )
             : [];
-        $personalWorkspaceSlugs = array_values(array_filter(array_map(
-            static fn(array $workspace): string => (bool)($workspace['is_personal_workspace'] ?? false)
-                ? WorkspaceValue::string($workspace['slug'] ?? '')
-                : '',
-            $visibleWorkspaces,
-        )));
 
         $rows = [];
         if ($visibleNodeIds !== []) {
             $builder = $this->database->table(ModuleWorkspaceSearch::TABLE_INDEX)
                 ->whereIn('node_id', $visibleNodeIds)
                 ->whereIn('language_code', array_values(array_unique([$language, $defaultLanguage])));
-            if ($workspaceSlug === self::PERSONAL_WORKSPACES_FILTER) {
-                if ($personalWorkspaceSlugs === []) {
-                    $builder->where('workspace_slug', '=', '__no_visible_personal_workspace__');
+            if (!$workspaceScope['all']) {
+                if ($workspaceScope['slugs'] === []) {
+                    $builder->where('workspace_slug', '=', '__no_selected_visible_workspace__');
                 } else {
-                    $builder->whereIn('workspace_slug', $personalWorkspaceSlugs);
+                    $builder->whereIn('workspace_slug', $workspaceScope['slugs']);
                 }
-            } elseif ($workspaceSlug !== '') {
-                $builder->where('workspace_slug', '=', $workspaceSlug);
             }
 
             if ($author !== '') {
@@ -253,21 +259,16 @@ final readonly class WorkspaceSearchService
      *     authorized Workspace into a real result even when it has no page.
      *
      * @param list<array<string,mixed>> $workspaces
+     * @param list<string>|null $workspaceSlugs
      * @return list<array<string,mixed>>
      */
-    private function workspaceResults(array $workspaces, string $query, string $workspaceSlug): array
+    private function workspaceResults(array $workspaces, string $query, ?array $workspaceSlugs): array
     {
         $terms = $this->terms($query);
         $results = [];
         foreach ($workspaces as $workspace) {
             $slug = WorkspaceValue::string($workspace['slug'] ?? '');
-            $isPersonal = (bool)($workspace['is_personal_workspace'] ?? false);
-            if (
-                ($workspaceSlug === self::PERSONAL_WORKSPACES_FILTER && !$isPersonal)
-                || ($workspaceSlug !== ''
-                    && $workspaceSlug !== self::PERSONAL_WORKSPACES_FILTER
-                    && $slug !== $workspaceSlug)
-            ) {
+            if (is_array($workspaceSlugs) && !in_array($slug, $workspaceSlugs, true)) {
                 continue;
             }
 
@@ -305,6 +306,100 @@ final readonly class WorkspaceSearchService
         }
 
         return $results;
+    }
+
+    /**
+     * HR: Prihvaća novi višestruki filtar i zadržava kompatibilnost sa starim
+     *     jednokratnim parametrom `workspace`.
+     * EN: Accepts the new multi-Workspace filter while retaining compatibility
+     *     with the legacy single `workspace` parameter.
+     *
+     * @param array<string,mixed> $filters
+     * @return list<string>
+     */
+    private function workspaceScopes(array $filters, string $legacyWorkspaceSlug): array
+    {
+        $value = $filters['workspaces'] ?? null;
+        $values = is_array($value) ? $value : explode(',', $this->string($value));
+        if ($values === [] || (count($values) === 1 && $this->string($values[0] ?? '') === '')) {
+            $values = $legacyWorkspaceSlug !== '' ? [$legacyWorkspaceSlug] : [];
+        }
+
+        $result = [];
+        foreach (array_slice($values, 0, 50) as $candidate) {
+            $scope = $this->string($candidate);
+            if ($scope !== '' && !in_array($scope, $result, true)) {
+                $result[] = $scope;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * HR: Sjecište korisničkog odabira i ACL-vidljivih područja. Posebna stavka
+     *     osobnih područja razvija se samo u osobna područja koja korisnik vidi.
+     * EN: Intersects the requested selection with ACL-visible Workspaces. The
+     *     personal aggregate expands only to personal Workspaces the actor sees.
+     *
+     * @param list<string> $requested
+     * @param list<array<string,mixed>> $visibleWorkspaces
+     * @return array{tokens:list<string>,slugs:list<string>,all:bool}
+     */
+    private function resolvedWorkspaceScope(
+        array $requested,
+        array $visibleWorkspaces,
+        bool $embedded,
+    ): array {
+        $visible = [];
+        $personal = [];
+        foreach ($visibleWorkspaces as $workspace) {
+            $slug = WorkspaceValue::string($workspace['slug'] ?? '');
+            if ($slug === '') {
+                continue;
+            }
+
+            $visible[$slug] = true;
+            if ((bool)($workspace['is_personal_workspace'] ?? false)) {
+                $personal[] = $slug;
+            }
+        }
+
+        if (!$embedded && ($requested === [] || in_array(self::ALL_WORKSPACES_FILTER, $requested, true))) {
+            return [
+                'tokens' => [self::ALL_WORKSPACES_FILTER],
+                'slugs' => array_keys($visible),
+                'all' => true,
+            ];
+        }
+
+        $tokens = [];
+        $slugs = [];
+        foreach ($requested as $scope) {
+            if ($scope === self::ALL_WORKSPACES_FILTER) {
+                continue;
+            }
+
+            if ($scope === self::PERSONAL_WORKSPACES_FILTER) {
+                if ($personal !== []) {
+                    $tokens[] = $scope;
+                    $slugs = [...$slugs, ...$personal];
+                }
+
+                continue;
+            }
+
+            if (isset($visible[$scope])) {
+                $tokens[] = $scope;
+                $slugs[] = $scope;
+            }
+        }
+
+        return [
+            'tokens' => array_values(array_unique($tokens)),
+            'slugs' => array_values(array_unique($slugs)),
+            'all' => false,
+        ];
     }
 
     /**

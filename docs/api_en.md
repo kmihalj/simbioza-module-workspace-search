@@ -10,7 +10,7 @@ disabled and moves into the same responsive drawer on a small screen. The full
 page is `/search` and supports:
 
 ```text
-?q=agenda&lang=en&workspace=conference&author=Ana&from=2026-01-01&to=2026-12-31&page=1&per_page=20
+?q=agenda&lang=en&workspaces[]=conference&workspaces[]=guides&author=Ana&from=2026-01-01&to=2026-12-31&page=1&per_page=20
 ```
 
 The optional `/search/suggest?q=...&lang=...` JSON route returns only a bounded
@@ -22,6 +22,11 @@ not one control for every page in a large result set.
 Plain multi-word `q` values are exact phrases. Use `+word` and
 `+"multiple words"` when every listed word and phrase must be present, for
 example `+Part +1 +"Part 2"`.
+
+Repeat `workspaces[]` to select multiple Workspaces. The special values
+`__all__` and `__personal__` mean all visible Workspaces and all personal
+Workspaces visible to the actor. The legacy single `workspace` parameter remains
+supported.
 
 ## HTTP API
 

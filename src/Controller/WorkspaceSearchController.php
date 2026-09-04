@@ -63,7 +63,10 @@ final readonly class WorkspaceSearchController
             mb_strlen($term, 'UTF-8'),
             count(array_filter(preg_split('/\s+/u', $term) ?: [])),
             is_numeric($result['total'] ?? null) ? (int)$result['total'] : 0,
-            $this->string($query['workspace'] ?? ''),
+            implode(',', array_filter(array_map(
+                $this->string(...),
+                is_array($result['workspace_scopes'] ?? null) ? $result['workspace_scopes'] : [],
+            ))),
             is_array($user) && is_numeric($user['id'] ?? null),
         ));
 
@@ -182,7 +185,7 @@ final readonly class WorkspaceSearchController
      * HR: Gradi baznu query mapu za poveznice stranica bez oslanjanja viewa na globale.
      * EN: Builds the base query map for pagination links without view-level globals.
      * @param array<mixed,mixed> $query
-     * @return array<string,scalar>
+     * @return array<string,scalar|list<scalar>>
      */
     private function paginationQuery(array $query): array
     {
@@ -190,6 +193,14 @@ final readonly class WorkspaceSearchController
         foreach ($query as $key => $value) {
             if (is_string($key) && is_scalar($value) && $key !== 'page') {
                 $result[$key] = $value;
+                continue;
+            }
+
+            if (is_string($key) && is_array($value) && $key !== 'page') {
+                $scalars = array_values(array_filter($value, is_scalar(...)));
+                if ($scalars !== []) {
+                    $result[$key] = $scalars;
+                }
             }
         }
 

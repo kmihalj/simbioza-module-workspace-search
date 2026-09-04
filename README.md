@@ -30,7 +30,7 @@ dependencies rather than optional suggestions.
 ## Installation
 
 ```bash
-composer require aaieduhr/simbioza-module-workspace-search:^0.1.4
+composer require aaieduhr/simbioza-module-workspace-search:^0.1.5
 vendor/bin/hph workspace-search:install-migration
 vendor/bin/hph orm-migrate:up
 vendor/bin/hph workspace-search:rebuild
@@ -50,11 +50,12 @@ the application's configured base path).
 - requested language with site-default fallback;
 - optional Workspace and publication-date filters.
 
-The full search form lists ordinary Workspaces visible to the current visitor.
+The full search form offers a checkbox picker for any combination of ordinary
+Workspaces visible to the current visitor, plus **All visible Workspaces**.
 All visible personal Workspaces are represented by one **Personal Workspaces**
 choice instead of one option per user. The list is available before a query is
-entered, and selecting the aggregate still applies the normal Workspace and
-page ACL checks.
+entered, and every combination still applies the normal Workspace and page ACL
+checks.
 
 Multiple words without operators are searched as one exact phrase. Advanced
 queries use `+word` and `+"multiple words"`; every listed word and quoted phrase
@@ -69,12 +70,13 @@ Authenticated web users and API-key owners receive only content allowed by
 their effective Workspace and inherited page ACL. Filtering occurs before
 totals, snippets, pagination, and suggestions, preventing metadata leaks.
 
-The HTML Editor can insert search for the current Workspace. That compact form
-submits directly to the full result page without an overlapping suggestion
-overlay. The result form keeps the originating Workspace name visible as a
-fixed scope instead of offering the global Workspace selector. The server still
-enforces both the selected Workspace slug and every ordinary ACL check; changing
-a submitted field cannot expose another inaccessible Workspace.
+The HTML Editor can insert search for one or more selected Workspaces, defaulting
+to the current Workspace. That compact form submits directly to the full result
+page without an overlapping suggestion overlay. The result form keeps all
+selected Workspace names visible as a fixed scope instead of offering the global
+picker. The server intersects every submitted slug with current ACL visibility;
+an embedded form without any valid target returns no results instead of widening
+to a global search.
 
 ## Index operations
 

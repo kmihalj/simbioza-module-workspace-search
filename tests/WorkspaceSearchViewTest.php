@@ -45,15 +45,29 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString("['is_personal_workspace']", $view);
     }
 
-    /** HR: Ugrađena pretraga prikazuje zaključano izvorno područje. EN: Embedded search renders its originating Workspace as a locked scope. */
-    public function testEmbeddedSearchKeepsWorkspaceScopeVisibleAndFixed(): void
+    /** HR: Ugrađena pretraga prikazuje zaključan popis odabranih područja. EN: Embedded search renders its selected Workspace list as a locked scope. */
+    public function testEmbeddedSearchKeepsWorkspaceScopesVisibleAndFixed(): void
     {
         $view = file_get_contents(dirname(__DIR__) . '/views/search/index.php');
 
         $this->assertIsString($view);
         $this->assertStringContainsString('$embeddedWorkspaceSearch', $view);
         $this->assertStringContainsString('name="embedded" value="1"', $view);
-        $this->assertStringContainsString("__('Search is limited to this Workspace.')", $view);
+        $this->assertStringContainsString('name="workspaces[]"', $view);
+        $this->assertStringContainsString("__('Search is limited to the selected Workspaces.')", $view);
+    }
+
+    /** HR: Globalna pretraga koristi višestruki odabir s jednom opcijom za sva područja. EN: Global search uses a multi-picker with one all-Workspaces option. */
+    public function testGlobalSearchUsesCheckboxWorkspacePicker(): void
+    {
+        $view = file_get_contents(dirname(__DIR__) . '/views/search/index.php');
+
+        $this->assertIsString($view);
+        $this->assertStringContainsString('data-workspace-search-scope-picker', $view);
+        $this->assertStringContainsString('data-workspace-search-scope-all', $view);
+        $this->assertStringContainsString('type="checkbox"', $view);
+        $this->assertStringContainsString('data-bs-auto-close="outside"', $view);
+        $this->assertStringContainsString('ALL_WORKSPACES_FILTER', $view);
     }
 
     /** HR: Forma objašnjava zadanu frazu i napredne operatore. EN: The form explains default phrase and advanced operator semantics. */

@@ -78,15 +78,16 @@ redoslijeda unosa; `+Dio +1 +"Dio 2"` zato zahtijeva sva tri izraza.
 Indeks se namjerno ponovno gradi umjesto arhiviranja. Vidi
 [integraciju backupa](backup_hr.md).
 
-## Ugrađena pretraga jednog područja
+## Ugrađena pretraga odabranih područja
 
 Workspace dinamički blok **Pretraga područja** koristi isti indeks i isti ACL
-servis kao puna stranica i API, ali zahtjevu uvijek dodaje slug trenutačnog
-područja i oznaku ugrađene pretrage. Rezultati iz drugog područja zato se ne mogu
-pojaviti ni kada ih isti korisnik inače smije vidjeti. Kompaktna forma šalje
-upit bez živog preklapajućeg popisa prijedloga. Na stranici rezultata izvorno
-područje prikazuje se kao imenovani opseg samo za čitanje, a straničenje čuva taj
-opseg.
+servis kao puna stranica i API, ali zahtjevu dodaje jedno ili više odabranih
+područja i oznaku ugrađene pretrage. Početna je vrijednost trenutačno područje.
+Rezultati iz neodabranog ili korisniku nevidljivog područja ne mogu se pojaviti.
+Kompaktna forma šalje upit bez živog preklapajućeg popisa prijedloga. Na stranici
+rezultata sva odabrana područja prikazuju se kao imenovani opseg samo za čitanje,
+a straničenje ga čuva. Ako nijedan cilj nije dostupan, pretraga vraća nula
+rezultata i nikada se ne proširuje na sva područja.
 
 Trajno brisanje područja objavljuje događaj čišćenja prije nestanka izvornih
 redaka. Search odmah uklanja retke s tim `workspace_id`; kasnija ponovna izgradnja

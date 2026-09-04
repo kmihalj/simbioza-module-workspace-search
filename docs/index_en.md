@@ -77,15 +77,16 @@ input order; `+Part +1 +"Part 2"` therefore requires all three expressions.
 The index is deliberately rebuilt rather than archived. See
 [Backup integration](backup_en.md).
 
-## Embedded single-Workspace search
+## Embedded selected-Workspace search
 
 The Workspace **Workspace search** dynamic block uses the same index and ACL
-service as the full page and API, but always adds the current Workspace slug and
-an embedded-search marker to the request. Results from another Workspace
-therefore cannot appear even when the same user would otherwise be allowed to
-view them. The compact form submits without a live suggestion overlay. On the
-result page the originating Workspace is rendered as a named, read-only scope;
-pagination preserves that scope.
+service as the full page and API, but adds one or more selected Workspace slugs
+and an embedded-search marker to the request. The current Workspace is the
+default. Results from an unselected or currently invisible Workspace cannot
+appear. The compact form submits without a live suggestion overlay. On the
+result page all selected Workspaces are rendered as a named, read-only scope;
+pagination preserves it. With no available target the search returns zero
+results and never broadens to all Workspaces.
 
 Permanent Workspace deletion emits the cleanup event before source rows vanish.
 Search removes rows with that `workspace_id` immediately; a later rebuild remains

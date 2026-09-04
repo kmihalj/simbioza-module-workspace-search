@@ -42,7 +42,7 @@
         "aaieduhr/heartphrame-module-editor-html": "^0.1.0",
         "aaieduhr/heartphrame-module-menu": "^0.1.0",
         "aaieduhr/heartphrame-module-orm": "^0.1.0",
-        "aaieduhr/simbioza-module-workspace": "^0.1.0"
+        "aaieduhr/simbioza-module-workspace": "^0.1.8"
     },
     "suggest": {
         "aaieduhr/heartphrame-module-backup": "Rebuilds the derived ACL-aware search index after a successful restore instead of archiving it.",

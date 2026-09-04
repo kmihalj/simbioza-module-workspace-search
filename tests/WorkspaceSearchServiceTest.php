@@ -336,6 +336,51 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertSame(['Prvi rezultat'], array_column($embedded['items'], 'title'));
     }
 
+    /** HR: Višestruki filtar vraća samo odabrana vidljiva područja. EN: A multi-filter returns only selected visible Workspaces. */
+    public function testSearchCanBeRestrictedToMultipleVisibleWorkspaces(): void
+    {
+        $first = $this->workspace('Prvo područje', 'first', 'public');
+        $second = $this->workspace('Drugo područje', 'second', 'public');
+        $third = $this->workspace('Treće područje', 'third', 'public');
+        $this->page($first, 'Prvi rezultat', 'first-result', 'Zajednička tražilica');
+        $this->page($second, 'Drugi rezultat', 'second-result', 'Zajednička tražilica');
+        $this->page($third, 'Treći rezultat', 'third-result', 'Zajednička tražilica');
+        $this->indexer->rebuild();
+
+        $result = $this->search->search('zajednička', 'hr', [
+            'workspaces' => ['first', 'third'],
+        ]);
+
+        $this->assertSame(['first', 'third'], $result['workspace_scopes']);
+        $this->assertSame(
+            ['Prvi rezultat', 'Treći rezultat'],
+            array_values(array_intersect(
+                ['Prvi rezultat', 'Treći rezultat'],
+                array_column($result['items'], 'title'),
+            )),
+        );
+        $this->assertNotContains('Drugi rezultat', array_column($result['items'], 'title'));
+    }
+
+    /** HR: Ugrađena pretraga bez valjanog cilja ne smije postati globalna. EN: Embedded search without a valid target must not become global. */
+    public function testEmbeddedSearchWithoutVisibleScopeReturnsNoResults(): void
+    {
+        $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
+        $this->page($workspace, 'Vidljiv rezultat', 'visible-result', 'Zajednička tražilica');
+        $this->indexer->rebuild();
+
+        $missing = $this->search->search('zajednička', 'hr', [
+            'workspaces' => ['not-imported-yet'],
+            'embedded' => '1',
+        ]);
+        $empty = $this->search->search('zajednička', 'hr', ['embedded' => '1']);
+
+        $this->assertSame([], $missing['workspace_scopes']);
+        $this->assertSame([], $missing['items']);
+        $this->assertSame(0, $missing['total']);
+        $this->assertSame(0, $empty['total']);
+    }
+
     /**
      * HR: Pokreće jednu reverzibilnu migraciju i prekida test na pogrešnom ugovoru.
      * EN: Runs one reversible migration and fails the test on an invalid contract.

@@ -10,7 +10,7 @@ ekranu ulazi u isti responzivni bočni panel. Puna stranica je `/search` i
 podržava:
 
 ```text
-?q=raspored&lang=hr&workspace=konferencija&author=Ana&from=2026-01-01&to=2026-12-31&page=1&per_page=20
+?q=raspored&lang=hr&workspaces[]=konferencija&workspaces[]=upute&author=Ana&from=2026-01-01&to=2026-12-31&page=1&per_page=20
 ```
 
 Opcionalna JSON ruta `/search/suggest?q=...&lang=...` vraća samo ograničeni
@@ -22,6 +22,10 @@ sljedećom poveznicom, ne jedan element za svaku stranicu velikog rezultata.
 Obična višerječna vrijednost parametra `q` točna je fraza. Upotrijebite
 `+riječ` i `+"više riječi"` kada svaka navedena riječ i fraza mora biti
 prisutna, primjerice `+Dio +1 +"Dio 2"`.
+
+Parametar `workspaces[]` može se ponoviti za više područja. Posebne vrijednosti
+`__all__` i `__personal__` znače sva vidljiva odnosno sva korisniku vidljiva
+osobna područja. Stari jednokratni parametar `workspace` ostaje podržan.
 
 ## HTTP API
 

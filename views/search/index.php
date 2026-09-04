@@ -14,11 +14,11 @@ use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchService;
  * @var int $minimumQueryLength
  * @var string $assetsCssPath
  * @var string $searchPath
- * @var array<string,scalar> $paginationQuery
+ * @var array<string,scalar|list<scalar>> $paginationQuery
  */
 
 $items = WorkspaceValue::rows($result['items'] ?? null);
-$filters = WorkspaceValue::stringKeyArray($result['filters'] ?? null);
+$filters = is_array($result['filters'] ?? null) ? $result['filters'] : [];
 $workspaces = WorkspaceValue::rows($result['workspaces'] ?? null);
 $query = is_scalar($result['query'] ?? null) ? (string)$result['query'] : '';
 $total = is_numeric($result['total'] ?? null) ? (int)$result['total'] : 0;
@@ -32,24 +32,43 @@ $pageNumbers = $pages > 0
     ]))
     : [];
 sort($pageNumbers);
+$allWorkspaceFilter = WorkspaceSearchService::ALL_WORKSPACES_FILTER;
 $personalWorkspaceFilter = WorkspaceSearchService::PERSONAL_WORKSPACES_FILTER;
 $hasPersonalWorkspaces = array_filter(
     $workspaces,
     static fn(array $workspace): bool => (bool)($workspace['is_personal_workspace'] ?? false),
 ) !== [];
-$selectedWorkspaceSlug = WorkspaceValue::string($filters['workspace'] ?? '');
-$embeddedWorkspaceSearch = WorkspaceValue::string($filters['embedded'] ?? '') === '1'
-    && $selectedWorkspaceSlug !== ''
-    && $selectedWorkspaceSlug !== $personalWorkspaceFilter;
-$selectedWorkspaceName = $selectedWorkspaceSlug;
-if ($embeddedWorkspaceSearch) {
-    foreach ($workspaces as $workspace) {
-        if (WorkspaceValue::string($workspace['slug'] ?? '') === $selectedWorkspaceSlug) {
-            $selectedWorkspaceName = WorkspaceValue::string($workspace['name'] ?? '') ?: $selectedWorkspaceSlug;
-            break;
-        }
+$selectedWorkspaceScopes = array_values(array_filter(array_map(
+    static fn(mixed $scope): string => is_scalar($scope) ? trim((string)$scope) : '',
+    is_array($result['workspace_scopes'] ?? null) ? $result['workspace_scopes'] : [],
+)));
+$embeddedWorkspaceSearch = WorkspaceValue::string($filters['embedded'] ?? '') === '1';
+$workspaceNames = [];
+foreach ($workspaces as $workspace) {
+    $slug = WorkspaceValue::string($workspace['slug'] ?? '');
+    if ($slug !== '') {
+        $workspaceNames[$slug] = WorkspaceValue::string($workspace['name'] ?? '') ?: $slug;
     }
 }
+$selectedWorkspaceLabels = [];
+foreach ($selectedWorkspaceScopes as $scope) {
+    if ($scope === $allWorkspaceFilter) {
+        $selectedWorkspaceLabels[] = __('All visible workspaces');
+    } elseif ($scope === $personalWorkspaceFilter) {
+        $selectedWorkspaceLabels[] = __('Personal Workspaces');
+    } elseif (isset($workspaceNames[$scope])) {
+        $selectedWorkspaceLabels[] = $workspaceNames[$scope];
+    }
+}
+$allWorkspacesSelected = in_array($allWorkspaceFilter, $selectedWorkspaceScopes, true);
+$workspaceSelectionLabel = $allWorkspacesSelected
+    ? __('All visible workspaces')
+    : (count($selectedWorkspaceLabels) === 1
+        ? $selectedWorkspaceLabels[0]
+        : sprintf(__('Selected Workspaces: %d'), count($selectedWorkspaceLabels)));
+$embeddedWorkspaceLabel = $selectedWorkspaceLabels !== []
+    ? implode(', ', $selectedWorkspaceLabels)
+    : __('No selected Workspace is available.');
 ?>
 
 <link rel="stylesheet" href="<?= $this->escape($assetsCssPath) ?>">
@@ -77,47 +96,100 @@ if ($embeddedWorkspaceSearch) {
                     >
                 </div>
                 <div class="col-12 col-md-6 col-lg-3">
-                    <label class="form-label" for="workspace-search-workspace">
+                    <label class="form-label" for="workspace-search-workspace-button">
                         <?= $this->escape(__('Workspace')) ?>
                     </label>
                     <?php if ($embeddedWorkspaceSearch) : ?>
                         <div
                             class="form-control"
-                            id="workspace-search-workspace"
+                            id="workspace-search-workspace-button"
                             aria-readonly="true"
-                        ><?= $this->escape($selectedWorkspaceName) ?></div>
-                        <input
-                            type="hidden"
-                            name="workspace"
-                            value="<?= $this->escape($selectedWorkspaceSlug) ?>"
-                        >
+                        ><?= $this->escape($embeddedWorkspaceLabel) ?></div>
+                        <?php foreach ($selectedWorkspaceScopes as $scope) : ?>
+                            <input type="hidden" name="workspaces[]" value="<?= $this->escape($scope) ?>">
+                        <?php endforeach; ?>
                         <input type="hidden" name="embedded" value="1">
                         <div class="form-text">
-                            <?= $this->escape(__('Search is limited to this Workspace.')) ?>
+                            <?= $this->escape(__('Search is limited to the selected Workspaces.')) ?>
                         </div>
                     <?php else : ?>
-                        <select class="form-select" id="workspace-search-workspace" name="workspace">
-                            <option value=""><?= $this->escape(__('All visible workspaces')) ?></option>
-                            <?php foreach ($workspaces as $workspace) : ?>
-                                <?php if ((bool)($workspace['is_personal_workspace'] ?? false)) {
-                                    continue;
-                                } ?>
-                                <?php
-                                $slug = WorkspaceValue::string($workspace['slug'] ?? '');
-                                $name = WorkspaceValue::string($workspace['name'] ?? '') ?: $slug;
-                                ?>
-                                <option
-                                    value="<?= $this->escape($slug) ?>"
-                                    <?= $selectedWorkspaceSlug === $slug ? 'selected' : '' ?>
-                                ><?= $this->escape($name) ?></option>
-                            <?php endforeach; ?>
-                            <?php if ($hasPersonalWorkspaces) : ?>
-                                <option
-                                    value="<?= $this->escape($personalWorkspaceFilter) ?>"
-                                    <?= $selectedWorkspaceSlug === $personalWorkspaceFilter ? 'selected' : '' ?>
-                                ><?= $this->escape(__('Personal Workspaces')) ?></option>
-                            <?php endif; ?>
-                        </select>
+                        <div class="dropdown" data-workspace-search-scope-picker>
+                            <button
+                                class="form-select text-start"
+                                id="workspace-search-workspace-button"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                data-bs-auto-close="outside"
+                                aria-expanded="false"
+                                data-workspace-search-scope-label
+                            ><?= $this->escape($workspaceSelectionLabel) ?></button>
+                            <div
+                                class="dropdown-menu w-100 p-2 shadow-sm hph-workspace-search__scope-menu"
+                                aria-labelledby="workspace-search-workspace-button"
+                            >
+                                <div class="form-check mb-1">
+                                    <input
+                                        class="form-check-input"
+                                        id="workspace-search-scope-all"
+                                        name="workspaces[]"
+                                        type="checkbox"
+                                        value="<?= $this->escape($allWorkspaceFilter) ?>"
+                                        data-workspace-search-scope-all
+                                        <?= $allWorkspacesSelected ? 'checked' : '' ?>
+                                    >
+                                    <label class="form-check-label" for="workspace-search-scope-all">
+                                        <?= $this->escape(__('All visible workspaces')) ?>
+                                    </label>
+                                </div>
+                                <?php $workspaceIndex = 0; ?>
+                                <?php foreach ($workspaces as $workspace) : ?>
+                                    <?php if ((bool)($workspace['is_personal_workspace'] ?? false)) {
+                                        continue;
+                                    } ?>
+                                    <?php
+                                    $slug = WorkspaceValue::string($workspace['slug'] ?? '');
+                                    $name = WorkspaceValue::string($workspace['name'] ?? '') ?: $slug;
+                                    $workspaceIndex++;
+                                    ?>
+                                    <div class="form-check mb-1">
+                                        <input
+                                            class="form-check-input"
+                                            id="workspace-search-scope-<?= $this->escape((string)$workspaceIndex) ?>"
+                                            name="workspaces[]"
+                                            type="checkbox"
+                                            value="<?= $this->escape($slug) ?>"
+                                            data-workspace-search-scope
+                                            data-workspace-search-scope-title="<?= $this->escape($name) ?>"
+                                            <?= in_array($slug, $selectedWorkspaceScopes, true) ? 'checked' : '' ?>
+                                        >
+                                        <label
+                                            class="form-check-label"
+                                            for="workspace-search-scope-<?= $this->escape((string)$workspaceIndex) ?>"
+                                        ><?= $this->escape($name) ?></label>
+                                    </div>
+                                <?php endforeach; ?>
+                                <?php if ($hasPersonalWorkspaces) : ?>
+                                    <div class="form-check mb-1">
+                                        <input
+                                            class="form-check-input"
+                                            id="workspace-search-scope-personal"
+                                            name="workspaces[]"
+                                            type="checkbox"
+                                            value="<?= $this->escape($personalWorkspaceFilter) ?>"
+                                            data-workspace-search-scope
+                                            data-workspace-search-scope-title="<?=
+                                                $this->escape(__('Personal Workspaces'))
+                                            ?>"
+                                            <?= in_array($personalWorkspaceFilter, $selectedWorkspaceScopes, true)
+                                                ? 'checked' : '' ?>
+                                        >
+                                        <label class="form-check-label" for="workspace-search-scope-personal">
+                                            <?= $this->escape(__('Personal Workspaces')) ?>
+                                        </label>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     <?php endif; ?>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3 d-grid">
@@ -254,3 +326,44 @@ if ($embeddedWorkspaceSearch) {
         </p>
     <?php endif; ?>
 </section>
+
+<?php if (!$embeddedWorkspaceSearch) : ?>
+    <script>
+        document.querySelectorAll('[data-workspace-search-scope-picker]').forEach(function (picker) {
+            var all = picker.querySelector('[data-workspace-search-scope-all]');
+            var scopes = Array.from(picker.querySelectorAll('[data-workspace-search-scope]'));
+            var label = picker.querySelector('[data-workspace-search-scope-label]');
+            var allLabel = <?= json_encode(__('All visible workspaces'), JSON_UNESCAPED_UNICODE) ?>;
+            var selectedLabel = <?= json_encode(__('Selected Workspaces: %d'), JSON_UNESCAPED_UNICODE) ?>;
+
+            function synchronize(changed) {
+                if (changed === all && all?.checked) {
+                    scopes.forEach(function (scope) { scope.checked = false; });
+                } else if (changed && changed !== all && changed.checked && all) {
+                    all.checked = false;
+                }
+
+                var selected = scopes.filter(function (scope) { return scope.checked; });
+                if ((!all || !all.checked) && selected.length === 0 && all) {
+                    all.checked = true;
+                }
+                if (!label) {
+                    return;
+                }
+                if (all?.checked) {
+                    label.textContent = allLabel;
+                } else if (selected.length === 1) {
+                    label.textContent = String(selected[0].dataset.workspaceSearchScopeTitle || selected[0].value);
+                } else {
+                    label.textContent = selectedLabel.replace('%d', String(selected.length));
+                }
+            }
+
+            all?.addEventListener('change', function () { synchronize(all); });
+            scopes.forEach(function (scope) {
+                scope.addEventListener('change', function () { synchronize(scope); });
+            });
+            synchronize(null);
+        });
+    </script>
+<?php endif; ?>
