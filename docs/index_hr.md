@@ -71,9 +71,9 @@ podataka.
 Pretraga koristi obične ORM query-builder operacije koje podržavaju SQLite,
 PostgreSQL i MySQL/MariaDB. Nijedan proizvođač baze ne posjeduje funkcionalnost.
 
-Običan višerječni unos jedna je točna fraza. Kada se upotrijebi `+` ili
-navodnici, svaki pojam i fraza postaje obavezan AND semantikom uz očuvanje
-redoslijeda unosa; `+Dio +1 +"Dio 2"` zato zahtijeva sva tri izraza.
+Unos bez posebnih znakova pretražuje se kao jedna cijela fraza. Ako sadržaj mora
+sadržavati više zasebnih riječi ili fraza, ispred svakog se pojma dodaje `+`;
+`+dio +drugi +"Dio 2"` zato zahtijeva sva tri izraza.
 
 Indeks se namjerno ponovno gradi umjesto arhiviranja. Vidi
 [integraciju backupa](backup_hr.md).

@@ -21,6 +21,7 @@ $items = WorkspaceValue::rows($result['items'] ?? null);
 $filters = is_array($result['filters'] ?? null) ? $result['filters'] : [];
 $workspaces = WorkspaceValue::rows($result['workspaces'] ?? null);
 $query = is_scalar($result['query'] ?? null) ? (string)$result['query'] : '';
+$language = WorkspaceValue::string($result['language'] ?? '');
 $total = is_numeric($result['total'] ?? null) ? (int)$result['total'] : 0;
 $page = is_numeric($result['page'] ?? null) ? (int)$result['page'] : 1;
 $pages = is_numeric($result['pages'] ?? null) ? (int)$result['pages'] : 0;
@@ -80,6 +81,7 @@ $embeddedWorkspaceLabel = $selectedWorkspaceLabels !== []
         action="<?= $this->escape($searchPath) ?>"
         role="search"
     >
+        <input type="hidden" name="lang" value="<?= $this->escape($language) ?>">
         <div class="card-body">
             <div class="row g-3 align-items-end">
                 <div class="col-12 col-lg-6">
@@ -231,9 +233,11 @@ $embeddedWorkspaceLabel = $selectedWorkspaceLabels !== []
                 <div class="col-12">
                     <p class="form-text mb-0">
                         <?= $this->escape(__(
-                            'Without operators, multiple words are searched as an exact phrase. '
-                            . 'Use +word and +"multiple words" for required words and phrases, '
-                            . 'e.g. +Part +1 +"Part 2".',
+                            'If you simply enter one or more words, '
+                            . 'the entire input is searched as one phrase. '
+                            . 'If the result must contain several separate words or phrases, put + before each one. '
+                            . 'Example: +part +second +"Part 2" finds content containing the word “part”, '
+                            . 'the word “second”, and the phrase “Part 2”.',
                         )) ?>
                     </p>
                 </div>

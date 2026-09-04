@@ -76,7 +76,17 @@ final class WorkspaceSearchViewTest extends TestCase
         $view = file_get_contents(dirname(__DIR__) . '/views/search/index.php');
 
         $this->assertIsString($view);
-        $this->assertStringContainsString('Without operators, multiple words are searched as an exact phrase.', $view);
-        $this->assertStringContainsString('+word and +"multiple words"', $view);
+        $this->assertStringContainsString('If you simply enter one or more words', $view);
+        $this->assertStringContainsString('+part +second +"Part 2"', $view);
+    }
+
+    /** HR: Slanje forme zadržava odabrani jezik pretrage. EN: Submitting the form preserves the selected search language. */
+    public function testSearchFormPreservesSelectedLanguage(): void
+    {
+        $view = file_get_contents(dirname(__DIR__) . '/views/search/index.php');
+
+        $this->assertIsString($view);
+        $this->assertStringContainsString('name="lang"', $view);
+        $this->assertStringContainsString("\$result['language']", $view);
     }
 }

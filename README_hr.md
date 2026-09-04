@@ -30,7 +30,7 @@ ovisnosti, a ne opcionalni prijedlozi.
 ## Instalacija
 
 ```bash
-composer require aaieduhr/simbioza-module-workspace-search:^0.1.4
+composer require aaieduhr/simbioza-module-workspace-search:^0.1.6
 vendor/bin/hph workspace-search:install-migration
 vendor/bin/hph orm-migrate:up
 vendor/bin/hph workspace-search:rebuild
@@ -56,10 +56,11 @@ posjetitelju. Sva vidljiva osobna područja objedinjena su u jednu mogućnost
 dostupan i prije unosa upita, a skupni filtar i dalje primjenjuje uobičajene
 ACL provjere područja i stranica.
 
-Više riječi bez operatora traži se kao jedna točna fraza. Napredni upit koristi
-`+riječ` i `+"više riječi"`; tada je svaka navedena riječ i fraza obavezna AND
-semantikom, redom kojim je unesena. Primjer `+Dio +1 +"Dio 2"` zahtijeva sva
-tri izraza. Ista je uputa prikazana ispod obje forme za pretragu.
+Unos bez posebnih znakova pretražuje se kao jedna cijela fraza. Ako sadržaj mora
+sadržavati više zasebnih riječi ili fraza, ispred svakog se pojma dodaje `+`.
+Primjer `+dio +drugi +"Dio 2"` pronalazi samo sadržaj koji sadrži riječ `dio`,
+riječ `drugi` i frazu `Dio 2`. Ista je uputa prikazana ispod obje forme za
+pretragu.
 
 Nacrti, arhivirani workflowi, obrisane stranice i nedostupni potomci nikada se
 ne vraćaju. Gost dobiva samo javne stranice. Prijavljeni web korisnik i vlasnik

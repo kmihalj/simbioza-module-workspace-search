@@ -70,9 +70,9 @@ Editor data.
 Search uses ordinary ORM query-builder operations supported by SQLite,
 PostgreSQL, and MySQL/MariaDB. No database vendor owns the feature.
 
-Plain multi-word input is one exact phrase. Once `+` or quotes are used, each
-token and quoted phrase becomes required with AND semantics while preserving
-input order; `+Part +1 +"Part 2"` therefore requires all three expressions.
+Input without special characters is searched as one complete phrase. To require
+several separate words or phrases, prefix every term with `+`;
+`+part +second +"Part 2"` therefore requires all three expressions.
 
 The index is deliberately rebuilt rather than archived. See
 [Backup integration](backup_en.md).

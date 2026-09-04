@@ -14,8 +14,11 @@ return [
     'Workspace' => 'Područje',
     'All visible workspaces' => 'Sva vidljiva područja',
     'Search is limited to this Workspace.' => 'Pretraga je ograničena na ovo područje.',
-    'Without operators, multiple words are searched as an exact phrase. Use +word and +"multiple words" for required words and phrases, e.g. +Part +1 +"Part 2".' =>
-        'Bez operatora više riječi traži se kao točna fraza. Za obavezne riječi i fraze koristite +riječ i +"više riječi", npr. +Dio +1 +"Dio 2".',
+    'Search is limited to the selected Workspaces.' => 'Pretraga je ograničena na odabrana područja.',
+    'Selected Workspaces: %d' => 'Odabrana područja: %d',
+    'No selected Workspace is available.' => 'Nijedno odabrano područje nije dostupno.',
+    'If you simply enter one or more words, the entire input is searched as one phrase. If the result must contain several separate words or phrases, put + before each one. Example: +part +second +"Part 2" finds content containing the word “part”, the word “second”, and the phrase “Part 2”.' =>
+        'Ako samo upišete jednu ili više riječi, pretražuje se cijeli upisani izraz kao jedna fraza. Ako rezultat mora sadržavati više zasebnih riječi ili fraza, ispred svake stavite znak +. Primjer: +dio +drugi +"Dio 2" pronalazi sadržaj koji sadrži riječ „dio“, riječ „drugi“ i frazu „Dio 2“.',
     'Author' => 'Autor',
     'Published from' => 'Objavljeno od',
     'Published to' => 'Objavljeno do',

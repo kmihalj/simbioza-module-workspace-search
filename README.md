@@ -30,7 +30,7 @@ dependencies rather than optional suggestions.
 ## Installation
 
 ```bash
-composer require aaieduhr/simbioza-module-workspace-search:^0.1.5
+composer require aaieduhr/simbioza-module-workspace-search:^0.1.6
 vendor/bin/hph workspace-search:install-migration
 vendor/bin/hph orm-migrate:up
 vendor/bin/hph workspace-search:rebuild
@@ -57,11 +57,11 @@ choice instead of one option per user. The list is available before a query is
 entered, and every combination still applies the normal Workspace and page ACL
 checks.
 
-Multiple words without operators are searched as one exact phrase. Advanced
-queries use `+word` and `+"multiple words"`; every listed word and quoted phrase
-is then required with AND semantics, in the order entered. For example,
-`+Part +1 +"Part 2"` requires all three expressions. The same rule is shown
-below both search forms.
+Input without special characters is searched as one complete phrase. To require
+several separate words or phrases, prefix every term with `+`; for example,
+`+part +second +"Part 2"` finds only content containing the word `part`, the
+word `second`, and the phrase `Part 2`. The same rule is shown below both search
+forms.
 
 Workspace matches are returned even when the Workspace has no published page.
 Drafts, archived workflows, deleted pages, and inaccessible descendants are
