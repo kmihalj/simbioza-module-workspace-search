@@ -81,12 +81,13 @@ The index is deliberately rebuilt rather than archived. See
 
 The Workspace **Workspace search** dynamic block uses the same index and ACL
 service as the full page and API, but adds one or more selected Workspace slugs
-and an embedded-search marker to the request. The current Workspace is the
-default. Results from an unselected or currently invisible Workspace cannot
+and an embedded-search marker to the initial request. The current Workspace is
+the default. Results from an unselected or currently invisible Workspace cannot
 appear. The compact form submits without a live suggestion overlay. On the
-result page all selected Workspaces are rendered as a named, read-only scope;
-pagination preserves it. With no available target the search returns zero
-results and never broadens to all Workspaces.
+result page the regular global picker opens with those Workspaces preselected;
+the visitor can then select another visible combination or all visible
+Workspaces. With no available initial target the search returns zero results
+and never broadens that initial search to all Workspaces.
 
 Permanent Workspace deletion emits the cleanup event before source rows vanish.
 Search removes rows with that `workspace_id` immediately; a later rebuild remains

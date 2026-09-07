@@ -72,11 +72,11 @@ totals, snippets, pagination, and suggestions, preventing metadata leaks.
 
 The HTML Editor can insert search for one or more selected Workspaces, defaulting
 to the current Workspace. That compact form submits directly to the full result
-page without an overlapping suggestion overlay. The result form keeps all
-selected Workspace names visible as a fixed scope instead of offering the global
-picker. The server intersects every submitted slug with current ACL visibility;
-an embedded form without any valid target returns no results instead of widening
-to a global search.
+page without an overlapping suggestion overlay. The regular global picker opens
+with those Workspaces preselected, so the visitor can repeat the search across
+another visible selection or all visible Workspaces. The server intersects every
+submitted slug with current ACL visibility; an embedded form without any valid
+target returns no results instead of widening the initial search globally.
 
 ## Index operations
 

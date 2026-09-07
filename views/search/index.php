@@ -43,7 +43,6 @@ $selectedWorkspaceScopes = array_values(array_filter(array_map(
     static fn(mixed $scope): string => is_scalar($scope) ? trim((string)$scope) : '',
     is_array($result['workspace_scopes'] ?? null) ? $result['workspace_scopes'] : [],
 )));
-$embeddedWorkspaceSearch = WorkspaceValue::string($filters['embedded'] ?? '') === '1';
 $workspaceNames = [];
 foreach ($workspaces as $workspace) {
     $slug = WorkspaceValue::string($workspace['slug'] ?? '');
@@ -67,9 +66,6 @@ $workspaceSelectionLabel = $allWorkspacesSelected
     : (count($selectedWorkspaceLabels) === 1
         ? $selectedWorkspaceLabels[0]
         : sprintf(__('Selected Workspaces: %d'), count($selectedWorkspaceLabels)));
-$embeddedWorkspaceLabel = $selectedWorkspaceLabels !== []
-    ? implode(', ', $selectedWorkspaceLabels)
-    : __('No selected Workspace is available.');
 ?>
 
 <link rel="stylesheet" href="<?= $this->escape($assetsCssPath) ?>">
@@ -101,21 +97,7 @@ $embeddedWorkspaceLabel = $selectedWorkspaceLabels !== []
                     <label class="form-label" for="workspace-search-workspace-button">
                         <?= $this->escape(__('Workspace')) ?>
                     </label>
-                    <?php if ($embeddedWorkspaceSearch) : ?>
-                        <div
-                            class="form-control"
-                            id="workspace-search-workspace-button"
-                            aria-readonly="true"
-                        ><?= $this->escape($embeddedWorkspaceLabel) ?></div>
-                        <?php foreach ($selectedWorkspaceScopes as $scope) : ?>
-                            <input type="hidden" name="workspaces[]" value="<?= $this->escape($scope) ?>">
-                        <?php endforeach; ?>
-                        <input type="hidden" name="embedded" value="1">
-                        <div class="form-text">
-                            <?= $this->escape(__('Search is limited to the selected Workspaces.')) ?>
-                        </div>
-                    <?php else : ?>
-                        <div class="dropdown" data-workspace-search-scope-picker>
+                    <div class="dropdown" data-workspace-search-scope-picker>
                             <button
                                 class="form-select text-start"
                                 id="workspace-search-workspace-button"
@@ -191,8 +173,7 @@ $embeddedWorkspaceLabel = $selectedWorkspaceLabels !== []
                                     </div>
                                 <?php endif; ?>
                             </div>
-                        </div>
-                    <?php endif; ?>
+                    </div>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3 d-grid">
                     <button class="btn btn-primary btn-lg" type="submit"><?= $this->escape(__('Search')) ?></button>
@@ -331,8 +312,7 @@ $embeddedWorkspaceLabel = $selectedWorkspaceLabels !== []
     <?php endif; ?>
 </section>
 
-<?php if (!$embeddedWorkspaceSearch) : ?>
-    <script>
+<script>
         document.querySelectorAll('[data-workspace-search-scope-picker]').forEach(function (picker) {
             var all = picker.querySelector('[data-workspace-search-scope-all]');
             var scopes = Array.from(picker.querySelectorAll('[data-workspace-search-scope]'));
@@ -369,5 +349,4 @@ $embeddedWorkspaceLabel = $selectedWorkspaceLabels !== []
             });
             synchronize(null);
         });
-    </script>
-<?php endif; ?>
+</script>

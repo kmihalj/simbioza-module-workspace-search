@@ -45,16 +45,17 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString("['is_personal_workspace']", $view);
     }
 
-    /** HR: Ugrađena pretraga prikazuje zaključan popis odabranih područja. EN: Embedded search renders its selected Workspace list as a locked scope. */
-    public function testEmbeddedSearchKeepsWorkspaceScopesVisibleAndFixed(): void
+    /** HR: Ugrađena pretraga unaprijed označava područja u običnom promjenjivom odabiru. EN: Embedded search preselects Workspaces in the regular editable picker. */
+    public function testEmbeddedSearchKeepsWorkspaceScopesVisibleAndEditable(): void
     {
         $view = file_get_contents(dirname(__DIR__) . '/views/search/index.php');
 
         $this->assertIsString($view);
-        $this->assertStringContainsString('$embeddedWorkspaceSearch', $view);
-        $this->assertStringContainsString('name="embedded" value="1"', $view);
+        $this->assertStringNotContainsString('$embeddedWorkspaceSearch', $view);
+        $this->assertStringNotContainsString('name="embedded" value="1"', $view);
         $this->assertStringContainsString('name="workspaces[]"', $view);
-        $this->assertStringContainsString("__('Search is limited to the selected Workspaces.')", $view);
+        $this->assertStringContainsString('data-workspace-search-scope-picker', $view);
+        $this->assertStringNotContainsString('aria-readonly="true"', $view);
     }
 
     /** HR: Globalna pretraga koristi višestruki odabir s jednom opcijom za sva područja. EN: Global search uses a multi-picker with one all-Workspaces option. */

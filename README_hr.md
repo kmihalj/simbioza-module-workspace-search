@@ -70,10 +70,10 @@ prijedloga, pa metapodaci ograničene stranice ne cure.
 
 HTML Editor na Workspace stranici može umetnuti pretragu trenutačnog područja.
 Ta kompaktna forma izravno otvara punu stranicu rezultata bez preklapajućeg
-popisa prijedloga. Forma rezultata prikazuje naziv izvornog područja kao fiksni
-opseg umjesto globalnog odabira područja. Poslužitelj i dalje provjerava zadani
-slug područja i sva uobičajena ACL pravila; izmjena poslanog polja ne može
-otkriti drugo nedostupno područje.
+popisa prijedloga. Obični globalni odabir otvara se s unaprijed označenim
+izvornim područjem ili područjima, pa posjetitelj može ponoviti pretragu nad
+drugim vidljivim odabirom ili svim vidljivim područjima. Poslužitelj i dalje
+provjerava zadane slugove područja i sva uobičajena ACL pravila.
 
 ## Rad s indeksom
 
