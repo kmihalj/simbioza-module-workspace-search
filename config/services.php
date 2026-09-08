@@ -90,7 +90,6 @@ $services = [
                 $container->get(ResponseFactory::class),
                 $container->get(WorkspaceSearchIndexer::class),
                 $container->get(WorkspaceRepository::class),
-                $container->get(\AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspacePresentationRegistry::class),
                 $container->get(WorkspaceAccessService::class),
                 $container->get(UrlGenerator::class),
                 $container->get(AlertHandler::class),

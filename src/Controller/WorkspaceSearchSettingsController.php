@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Controller;
 
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceAccessService;
-use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspacePresentationRegistry;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceRepository;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceValue;
 use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
@@ -35,7 +34,6 @@ final readonly class WorkspaceSearchSettingsController
         private ResponseFactory $responses,
         private WorkspaceSearchIndexer $indexer,
         private WorkspaceRepository $workspaces,
-        private WorkspacePresentationRegistry $presentations,
         private WorkspaceAccessService $access,
         private UrlGenerator $urls,
         private AlertHandler $alerts,
@@ -55,10 +53,10 @@ final readonly class WorkspaceSearchSettingsController
 
         return $this->views->render('settings/index', [
         'title' => __('Indeks pretrage'),
-        'workspaces' => $this->workspaces->tablesReady()
-            ? $this->presentations->many($this->workspaces->activeWorkspaces())
-            : [],
         'reindexPath' => $this->path('workspace-search.settings.reindex', '/settings/workspace-search/reindex'),
+        'workspaceLookupPath' => $this->path('workspace.lookup.workspaces', '/workspaces/lookups/workspaces'),
+        'workspaceAssetsCssPath' => $this->path('workspace.assets.css', '/workspaces/assets.css'),
+        'workspaceAssetsJsPath' => $this->path('workspace.assets.js', '/workspaces/assets.js'),
         'csrfInput' => $this->csrf->generateCsrfTokenInputField(),
         'settingsMenuActiveSection' => 'workspace-search.settings',
         ]);
