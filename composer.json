@@ -38,18 +38,18 @@
     "require": {
         "php": ">=8.2",
         "aaieduhr/heartphrame-framework": "^0.0.25",
-        "aaieduhr/heartphrame-module-auth": "^0.1.0",
-        "aaieduhr/heartphrame-module-editor-html": "^0.1.0",
-        "aaieduhr/heartphrame-module-menu": "^0.1.0",
-        "aaieduhr/heartphrame-module-orm": "^0.1.0",
-        "aaieduhr/simbioza-module-workspace": "^0.1.18"
+        "aaieduhr/heartphrame-module-auth": "^0.1.8",
+        "aaieduhr/heartphrame-module-editor-html": "^0.1.22",
+        "aaieduhr/heartphrame-module-menu": "^0.1.10",
+        "aaieduhr/heartphrame-module-orm": "^0.1.4",
+        "aaieduhr/simbioza-module-workspace": "^0.1.23"
     },
     "suggest": {
         "aaieduhr/heartphrame-module-backup": "Rebuilds the derived ACL-aware search index after a successful restore instead of archiving it.",
         "aaieduhr/heartphrame-module-api": "Exposes ACL-aware Workspace searches through /api/v1/workspace-search."
     },
     "require-dev": {
-        "aaieduhr/heartphrame-module-api": "^0.1.0",
+        "aaieduhr/heartphrame-module-api": "^0.1.3",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^10 || ^11",
         "rector/rector": "^2.0",

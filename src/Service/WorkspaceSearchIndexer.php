@@ -202,7 +202,9 @@ EN: The database timestamp prevents every PHP-FPM process from
                     $localizedNode = $this->workspaces->localizeNode($node, $language, $primaryLanguage);
 
                     $nodeId = WorkspaceValue::int($node['id'] ?? 0);
-                    $authorId = WorkspaceValue::int($node['created_by_user_id'] ?? 0);
+                    $authorId = is_int($version->documentCreatedByUserId)
+                    ? $version->documentCreatedByUserId
+                    : WorkspaceValue::int($node['created_by_user_id'] ?? 0);
                     $authorName = $this->userLabel($authorId, '', $userNames);
                     $modifiedByUserId = is_int($version->createdByUserId) ? $version->createdByUserId : 0;
                     $modifiedByName = $this->userLabel(
@@ -215,11 +217,14 @@ EN: The database timestamp prevents every PHP-FPM process from
                     $title = trim($version->title) !== ''
                     ? trim($version->title)
                     : WorkspaceValue::string($localizedNode['title'] ?? '');
+                    $publishedAt = trim($version->documentCreatedAt) !== ''
+                    ? trim($version->documentCreatedAt)
+                    : WorkspaceValue::string($row['published_at'] ?? '');
                     $hash = hash('sha256', implode("\n", [
                     $title,
                     $body,
                     (string)$version->versionNumber,
-                    WorkspaceValue::string($row['published_at'] ?? ''),
+                    $publishedAt,
                     (string)$authorId,
                     (string)$modifiedByUserId,
                     $modifiedByName,
@@ -246,7 +251,7 @@ EN: The database timestamp prevents every PHP-FPM process from
                     'normalized_text' => $this->normalize($title . ' ' . $body),
                     'author_user_id' => $authorId > 0 ? $authorId : null,
                     'author_name' => $authorName !== '' ? $authorName : null,
-                    'published_at' => WorkspaceValue::string($row['published_at'] ?? '') ?: null,
+                    'published_at' => $publishedAt !== '' ? $publishedAt : null,
                     'modified_by_user_id' => $modifiedByUserId > 0 ? $modifiedByUserId : null,
                     'modified_by_name' => $modifiedByName !== '' ? $modifiedByName : null,
                     'modified_at' => trim($version->createdAt) !== '' ? trim($version->createdAt) : null,
@@ -353,7 +358,9 @@ EN: The database timestamp prevents every PHP-FPM process from
         }
 
         $node = $this->workspaces->findNodeById($nodeId);
-        $authorId = WorkspaceValue::int($node['created_by_user_id'] ?? 0);
+        $authorId = is_int($version->documentCreatedByUserId)
+        ? $version->documentCreatedByUserId
+        : WorkspaceValue::int($node['created_by_user_id'] ?? 0);
         $userNames = [];
         $authorName = $this->userLabel($authorId, '', $userNames);
         $modifiedByUserId = is_int($version->createdByUserId) ? $version->createdByUserId : 0;
@@ -386,7 +393,9 @@ EN: The database timestamp prevents every PHP-FPM process from
         $title = trim($version->title) !== ''
         ? trim($version->title)
         : $localizedNodeTitle;
-        $publishedAt = WorkspaceValue::string($context['published_at'] ?? '');
+        $publishedAt = trim($version->documentCreatedAt) !== ''
+        ? trim($version->documentCreatedAt)
+        : WorkspaceValue::string($context['published_at'] ?? '');
         $hash = hash('sha256', implode("\n", [
             $title,
             $body,

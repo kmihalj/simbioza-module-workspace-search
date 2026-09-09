@@ -316,6 +316,38 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertSame(['Autor dva', 'Izmijenio dva'], array_column($result['items'], 'title'));
     }
 
+    /**
+     * HR: Indeks koristi autora i datum nastanka Editor dokumenta, a ne
+     *     administratora i datum tehničkog Workspace importa.
+     * EN: The index uses the Editor document creator and creation date, not
+     *     the administrator and date of the technical Workspace import.
+     */
+    public function testImportedPageUsesDocumentCreationMetadataInsteadOfTechnicalNodeMetadata(): void
+    {
+        $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
+        $this->page(
+            $workspace,
+            'Životopis',
+            'biography',
+            'Sadržaj',
+            1,
+            2,
+            '2026-09-09 10:49:57',
+            3,
+            '2023-03-15 13:02:10',
+        );
+
+        $result = $this->search->search('', 'hr', ['workspaces' => ['docs']]);
+        $bySourceAuthor = $this->search->search('', 'hr', ['author' => '3']);
+        $byImportingAdministrator = $this->search->search('', 'hr', ['author' => '1']);
+
+        $this->assertSame('Gama Cvita', $result['items'][0]['author_name']);
+        $this->assertSame('2023-03-15 13:02:10', $result['items'][0]['published_at']);
+        $this->assertSame('Beta Bruno', $result['items'][0]['modified_by_name']);
+        $this->assertSame(1, $bySourceAuthor['total']);
+        $this->assertSame(0, $byImportingAdministrator['total']);
+    }
+
     /** HR: Sam datum od automatski završava danas, a sam datum do obuhvaća cijelu raniju povijest. EN: A lone from date ends today automatically, while a lone to date includes all earlier history. */
     public function testPublicationDateFiltersSupportOpenAndAutomaticBoundaries(): void
     {
@@ -545,6 +577,8 @@ final class WorkspaceSearchServiceTest extends TestCase
         int $authorUserId = 1,
         int $modifiedByUserId = 1,
         string $publishedAt = '2026-08-12 10:00:00',
+        ?int $documentAuthorUserId = null,
+        string $documentCreatedAt = '',
     ): array {
         $node = $this->repository->saveNode((int)$workspace['id'], [
             'title' => $title,
@@ -569,6 +603,8 @@ final class WorkspaceSearchServiceTest extends TestCase
             $modifiedByUserId,
             'Izmjenitelj ' . $modifiedByUserId,
             true,
+            $documentAuthorUserId,
+            $documentCreatedAt,
         );
 
         return $node;
