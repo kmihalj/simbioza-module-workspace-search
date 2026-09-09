@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Service;
 
 use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
+use AaiEduHr\HeartPhrameModuleOrm\Database\LocaleSorter;
 use AaiEduHr\HeartPhrameModuleOrm\Database\QueryBuilder;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceAccessService;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceConfig;
@@ -69,6 +70,12 @@ final readonly class WorkspaceSearchService
         $author = $this->string($filters['author'] ?? '');
         $from = $this->date($filters['from'] ?? '');
         $to = $this->date($filters['to'] ?? '');
+        if ($from !== '' && $to === '') {
+            $to = date('Y-m-d');
+        }
+
+        $sort = $this->sort($filters['sort'] ?? 'title');
+        $direction = strtolower($this->string($filters['direction'] ?? 'asc')) === 'desc' ? 'desc' : 'asc';
 
         $base = [
         'query' => $query,
@@ -79,6 +86,10 @@ final readonly class WorkspaceSearchService
         'total' => 0,
         'pages' => 0,
         'items' => [],
+        'search_executed' => false,
+        'browse_mode' => false,
+        'query_too_short' => $query !== '' && mb_strlen($query) < $this->config->minimumQueryLength(),
+        'query_required_for_multiple_workspaces' => false,
         'workspace_scopes' => [],
         'filters' => [
         'workspace' => $workspaceSlug,
@@ -86,15 +97,17 @@ final readonly class WorkspaceSearchService
         'author' => $author,
         'from' => $from,
         'to' => $to,
+        'sort' => $sort,
+        'direction' => $direction,
         ],
         'workspaces' => [],
         ];
         $hasSearchQuery = mb_strlen($query) >= $this->config->minimumQueryLength();
-        [$visibleNodeIds, $visibleWorkspaces] = $this->visibleScope(
+        [, $visibleWorkspaces] = $this->visibleScope(
             $user,
             $language,
             $defaultLanguage,
-            $hasSearchQuery,
+            false,
         );
         $base['workspaces'] = $visibleWorkspaces;
         $workspaceScope = $this->resolvedWorkspaceScope(
@@ -103,12 +116,21 @@ final readonly class WorkspaceSearchService
             $embedded,
         );
         $base['workspace_scopes'] = $workspaceScope['tokens'];
-        if (!$hasSearchQuery) {
+        $multipleWorkspaceSelection = !$workspaceScope['all'] && count($workspaceScope['tokens']) > 1;
+        $hasNarrowingFilter = !$workspaceScope['all'] || $author !== '' || $from !== '' || $to !== '';
+        $base['query_required_for_multiple_workspaces'] = $query === '' && $multipleWorkspaceSelection;
+        $browseMode = $query === '' && $hasNarrowingFilter && !$multipleWorkspaceSelection;
+        $searchExecuted = $hasSearchQuery || $browseMode;
+        $base['search_executed'] = $searchExecuted;
+        $base['browse_mode'] = $browseMode;
+        if (!$searchExecuted) {
             return $base;
         }
 
+        [$visibleNodeIds] = $this->visibleScope($user, $language, $defaultLanguage, true);
+
         $this->indexer->refreshIfDue();
-        $workspaceResults = $author === '' && $from === '' && $to === ''
+        $workspaceResults = $hasSearchQuery && $author === '' && $from === '' && $to === ''
             ? $this->workspaceResults(
                 $visibleWorkspaces,
                 $query,
@@ -131,9 +153,17 @@ final readonly class WorkspaceSearchService
 
             if ($author !== '') {
                 if (ctype_digit($author)) {
-                    $builder->where('author_user_id', '=', (int)$author);
+                    $authorId = (int)$author;
+                    $builder->whereNested(static function (QueryBuilder $nested) use ($authorId): void {
+                        $nested->where('author_user_id', '=', $authorId)
+                            ->orWhere('modified_by_user_id', '=', $authorId);
+                    });
                 } else {
-                    $builder->whereRaw('LOWER(author_name) LIKE ?', ['%' . mb_strtolower($author) . '%']);
+                    $needle = '%' . mb_strtolower($author) . '%';
+                    $builder->whereNested(static function (QueryBuilder $nested) use ($needle): void {
+                        $nested->whereRaw('LOWER(author_name) LIKE ?', [$needle])
+                            ->orWhereRaw('LOWER(modified_by_name) LIKE ?', [$needle]);
+                    });
                 }
             }
 
@@ -149,7 +179,8 @@ final readonly class WorkspaceSearchService
                 $needle = '%' . $term . '%';
                 $builder->whereNested(static function (QueryBuilder $nested) use ($needle): void {
                     $nested->where('normalized_text', 'LIKE', $needle)
-                        ->orWhereRaw('LOWER(author_name) LIKE ?', [$needle]);
+                        ->orWhereRaw('LOWER(author_name) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(modified_by_name) LIKE ?', [$needle]);
                 });
             }
 
@@ -163,7 +194,18 @@ final readonly class WorkspaceSearchService
             }
 
             $rows = array_values($preferred);
-            usort($rows, fn(array $left, array $right): int => $this->compareRows($left, $right, $query));
+            usort(
+                $rows,
+                $browseMode
+                    ? fn(array $left, array $right): int => $this->compareBrowseRows(
+                        $left,
+                        $right,
+                        $sort,
+                        $direction,
+                        $language,
+                    )
+                    : fn(array $left, array $right): int => $this->compareRows($left, $right, $query, $language),
+            );
         }
 
         $pageResults = array_map(
@@ -301,6 +343,9 @@ final readonly class WorkspaceSearchService
                 'author_user_id' => 0,
                 'author_name' => '',
                 'published_at' => '',
+                'modified_by_user_id' => 0,
+                'modified_by_name' => '',
+                'modified_at' => '',
                 'url' => $this->workspacePath($slug),
             ];
         }
@@ -459,10 +504,10 @@ final readonly class WorkspaceSearchService
     /**
      * HR: Rangira točno i djelomično podudaranje naslova prije novijih objava.
      * EN: Ranks exact and partial title matches before newer publications.
-     * @param array<string, mixed> $left
-     * @param array<string, mixed> $right
+     * @param array<mixed> $left
+     * @param array<mixed> $right
      */
-    private function compareRows(array $left, array $right, string $query): int
+    private function compareRows(array $left, array $right, string $query, string $language): int
     {
         $needle = mb_strtolower($query, 'UTF-8');
         $leftTitle = mb_strtolower(WorkspaceValue::string($left['title'] ?? ''), 'UTF-8');
@@ -473,10 +518,66 @@ final readonly class WorkspaceSearchService
             return $rightScore <=> $leftScore;
         }
 
-        return strcmp(
+        $publishedOrder = strcmp(
             WorkspaceValue::string($right['published_at'] ?? ''),
             WorkspaceValue::string($left['published_at'] ?? ''),
         );
+        if ($publishedOrder !== 0) {
+            return $publishedOrder;
+        }
+
+        return LocaleSorter::compare(
+            WorkspaceValue::string($left['title'] ?? ''),
+            WorkspaceValue::string($right['title'] ?? ''),
+            $language,
+        );
+    }
+
+    /**
+     * HR: Sortira tablični pregled po dopuštenoj koloni i stabilnom naslovu.
+     * EN: Sorts browse-table rows by an allowed column and a stable title fallback.
+     *
+     * @param array<mixed> $left
+     * @param array<mixed> $right
+     */
+    private function compareBrowseRows(
+        array $left,
+        array $right,
+        string $sort,
+        string $direction,
+        string $language,
+    ): int {
+        $column = match ($sort) {
+            'author' => 'author_name',
+            'published_at' => 'published_at',
+            'modified_at' => 'modified_at',
+            'modified_by' => 'modified_by_name',
+            default => 'title',
+        };
+        $comparison = in_array($sort, ['published_at', 'modified_at'], true)
+            ? strcmp(
+                WorkspaceValue::string($left[$column] ?? ''),
+                WorkspaceValue::string($right[$column] ?? ''),
+            )
+            : LocaleSorter::compare(
+                WorkspaceValue::string($left[$column] ?? ''),
+                WorkspaceValue::string($right[$column] ?? ''),
+                $language,
+            );
+        if ($comparison === 0) {
+            $comparison = LocaleSorter::compare(
+                WorkspaceValue::string($left['title'] ?? ''),
+                WorkspaceValue::string($right['title'] ?? ''),
+                $language,
+            );
+        }
+
+        if ($comparison === 0) {
+            $comparison = WorkspaceValue::int($left['node_id'] ?? 0)
+                <=> WorkspaceValue::int($right['node_id'] ?? 0);
+        }
+
+        return $direction === 'desc' ? -$comparison : $comparison;
     }
 
     /**
@@ -506,6 +607,9 @@ final readonly class WorkspaceSearchService
         'author_user_id' => WorkspaceValue::int($row['author_user_id'] ?? 0),
         'author_name' => WorkspaceValue::string($row['author_name'] ?? ''),
         'published_at' => WorkspaceValue::string($row['published_at'] ?? ''),
+        'modified_by_user_id' => WorkspaceValue::int($row['modified_by_user_id'] ?? 0),
+        'modified_by_name' => WorkspaceValue::string($row['modified_by_name'] ?? ''),
+        'modified_at' => WorkspaceValue::string($row['modified_at'] ?? ''),
         'url' => $this->pagePath($workspaceSlug, $nodeSlug),
         ];
     }
@@ -606,6 +710,16 @@ final readonly class WorkspaceSearchService
         $value = $this->string($value);
 
         return preg_match('/^\d{4}-\d{2}-\d{2}$/D', $value) === 1 ? $value : '';
+    }
+
+    /** HR: Ograničava sortiranje na prikazane kolone tablice. EN: Limits sorting to displayed table columns. */
+    private function sort(mixed $value): string
+    {
+        $sort = $this->string($value);
+
+        return in_array($sort, ['title', 'author', 'published_at', 'modified_at', 'modified_by'], true)
+            ? $sort
+            : 'title';
     }
 
     /**

@@ -67,6 +67,11 @@ final class WorkspaceSearchServiceTest extends TestCase
             . '/vendor/aaieduhr/simbioza-module-workspace/resources/migrations/initial_workspace_schema.php',
         );
         $this->runMigration(dirname(__DIR__) . '/resources/migrations/initial_workspace_search_schema.php');
+        $names = [
+            1 => ['Ivo', 'Alfa'],
+            2 => ['Bruno', 'Beta'],
+            3 => ['Cvita', 'Gama'],
+        ];
         foreach ([1, 2, 3] as $userId) {
             $this->database->table(ModuleAuth::TABLE_AUTH_USERS)->insert([
                 'id' => $userId,
@@ -78,6 +83,20 @@ final class WorkspaceSearchServiceTest extends TestCase
                 'created_at' => '2026-08-12 10:00:00',
                 'updated_at' => '2026-08-12 10:00:00',
             ]);
+            foreach (
+                [
+                'first_name' => $names[$userId][0],
+                'last_name' => $names[$userId][1],
+                ] as $field => $value
+            ) {
+                $this->database->table(ModuleAuth::TABLE_AUTH_USER_ATTRIBUTE_VALUES)->insert([
+                    'user_id' => $userId,
+                    'field_key' => $field,
+                    'value_text' => $value,
+                    'created_at' => '2026-08-12 10:00:00',
+                    'updated_at' => '2026-08-12 10:00:00',
+                ]);
+            }
         }
 
         $this->repository = new WorkspaceRepository($this->database);
@@ -207,6 +226,109 @@ final class WorkspaceSearchServiceTest extends TestCase
 
         $this->assertSame(0, $result['total']);
         $this->assertSame(['docs'], array_column($result['workspaces'], 'slug'));
+    }
+
+    /** HR: Prazan pojam bez filtra ne pokreće globalni popis, ali odabrano područje vraća sortirljivu paginiranu tablicu. EN: An empty unfiltered term does not run a global listing, while a selected Workspace returns a sortable paginated table. */
+    public function testEmptyQueryRequiresNarrowingFilterAndBrowsesSelectedWorkspace(): void
+    {
+        $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
+        $this->page($workspace, 'Beta stranica', 'beta', 'Sadržaj beta');
+        $this->page($workspace, 'Alfa stranica', 'alfa', 'Sadržaj alfa');
+
+        $unfiltered = $this->search->search('', 'hr');
+        $browse = $this->search->search('', 'hr', [
+            'workspaces' => ['docs'],
+            'sort' => 'title',
+            'direction' => 'asc',
+            'per_page' => 1,
+        ]);
+
+        $this->assertFalse($unfiltered['search_executed']);
+        $this->assertTrue($browse['search_executed']);
+        $this->assertTrue($browse['browse_mode']);
+        $this->assertSame(2, $browse['total']);
+        $this->assertSame(2, $browse['pages']);
+        $this->assertSame('Alfa stranica', $browse['items'][0]['title']);
+        $this->assertSame('Alfa Ivo', $browse['items'][0]['author_name']);
+        $this->assertSame('Alfa Ivo', $browse['items'][0]['modified_by_name']);
+        $this->assertSame('2026-08-12 10:00:00', $browse['items'][0]['modified_at']);
+    }
+
+    /** HR: Naslovi u pregledu slijede hrvatsku abecedu. EN: Browse titles follow Croatian alphabet rules. */
+    public function testBrowseResultsUseRequestedLocaleForTitleOrdering(): void
+    {
+        $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
+        foreach (['Žaba', 'Zec', 'Šuma', 'Sava', 'Đak', 'Dabar', 'Ćuk', 'Čar', 'Cesta', 'Džep'] as $index => $title) {
+            $this->page($workspace, $title, 'locale-' . $index, 'Sadržaj');
+        }
+
+        $result = $this->search->search('', 'hr', [
+            'workspaces' => ['docs'],
+            'sort' => 'title',
+            'direction' => 'asc',
+            'per_page' => 25,
+        ]);
+
+        $this->assertSame(
+            ['Cesta', 'Čar', 'Ćuk', 'Dabar', 'Džep', 'Đak', 'Sava', 'Šuma', 'Zec', 'Žaba'],
+            array_column($result['items'], 'title'),
+        );
+    }
+
+    /** HR: Dva ili više odabranih područja zahtijevaju pojam i zadržavaju klasični prikaz. EN: Two or more selected Workspaces require a term and retain classic results. */
+    public function testMultipleWorkspaceSelectionRequiresQuery(): void
+    {
+        $docs = $this->workspace('Dokumentacija', 'docs', 'public');
+        $news = $this->workspace('Novosti', 'news', 'public');
+        $this->page($docs, 'Dokumentacija stranica', 'docs-page', 'Zajednički sadržaj');
+        $this->page($news, 'Novosti stranica', 'news-page', 'Zajednički sadržaj');
+
+        $withoutQuery = $this->search->search('', 'hr', [
+            'workspaces' => ['docs', 'news'],
+            'author' => '1',
+        ]);
+        $withQuery = $this->search->search('Zajednički', 'hr', [
+            'workspaces' => ['docs', 'news'],
+        ]);
+
+        $this->assertFalse($withoutQuery['search_executed']);
+        $this->assertFalse($withoutQuery['browse_mode']);
+        $this->assertTrue($withoutQuery['query_required_for_multiple_workspaces']);
+        $this->assertSame(0, $withoutQuery['total']);
+        $this->assertTrue($withQuery['search_executed']);
+        $this->assertFalse($withQuery['browse_mode']);
+        $this->assertFalse($withQuery['query_required_for_multiple_workspaces']);
+        $this->assertSame(2, $withQuery['total']);
+    }
+
+    /** HR: Autor pronalazi i stranice koje je korisnik stvorio i one koje je zadnji izmijenio. EN: Author filtering finds pages the user created and pages the user last modified. */
+    public function testAuthorFilterIncludesPageAuthorAndLastModifier(): void
+    {
+        $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
+        $this->page($workspace, 'Autor dva', 'author-two', 'Sadržaj', 2, 1);
+        $this->page($workspace, 'Izmijenio dva', 'modifier-two', 'Sadržaj', 1, 2);
+        $this->page($workspace, 'Bez korisnika dva', 'unrelated', 'Sadržaj', 1, 1);
+
+        $result = $this->search->search('', 'hr', ['author' => '2']);
+
+        $this->assertTrue($result['browse_mode']);
+        $this->assertSame(2, $result['total']);
+        $this->assertSame(['Autor dva', 'Izmijenio dva'], array_column($result['items'], 'title'));
+    }
+
+    /** HR: Sam datum od automatski završava danas, a sam datum do obuhvaća cijelu raniju povijest. EN: A lone from date ends today automatically, while a lone to date includes all earlier history. */
+    public function testPublicationDateFiltersSupportOpenAndAutomaticBoundaries(): void
+    {
+        $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
+        $this->page($workspace, 'Stara stranica', 'old', 'Sadržaj', 1, 1, '2025-01-10 09:00:00');
+        $this->page($workspace, 'Nova stranica', 'new', 'Sadržaj', 1, 1, '2026-08-12 10:00:00');
+
+        $from = $this->search->search('', 'hr', ['from' => '2026-01-01']);
+        $to = $this->search->search('', 'hr', ['to' => '2025-12-31']);
+
+        $this->assertSame(date('Y-m-d'), $from['filters']['to']);
+        $this->assertSame(['Nova stranica'], array_column($from['items'], 'title'));
+        $this->assertSame(['Stara stranica'], array_column($to['items'], 'title'));
     }
 
     /** HR: Naslov objavljene stranice ostaje pretraživ neovisno o tekstu tijela. EN: A published page title remains searchable independently of its body text. */
@@ -415,20 +537,27 @@ final class WorkspaceSearchServiceTest extends TestCase
      * @param array<string, mixed> $workspace
      * @return array<string, mixed>
      */
-    private function page(array $workspace, string $title, string $key, string $content): array
-    {
+    private function page(
+        array $workspace,
+        string $title,
+        string $key,
+        string $content,
+        int $authorUserId = 1,
+        int $modifiedByUserId = 1,
+        string $publishedAt = '2026-08-12 10:00:00',
+    ): array {
         $node = $this->repository->saveNode((int)$workspace['id'], [
             'title' => $title,
             'slug' => $key,
             'node_type' => 'document',
             'document_key' => $key,
-        ], 1);
+        ], $authorUserId);
         $this->repository->saveNodeWorkflow((int)$node['id'], 'hr', [
             'status' => 'published',
             'current_version_number' => 1,
             'published_version_number' => 1,
             'published_by_user_id' => 1,
-            'published_at' => '2026-08-12 10:00:00',
+            'published_at' => $publishedAt,
         ], 1);
         $this->versions['hr:' . $key] = new EditorDocumentVersion(
             $key,
@@ -436,9 +565,9 @@ final class WorkspaceSearchServiceTest extends TestCase
             1,
             $title,
             '<p>' . htmlspecialchars($content, ENT_QUOTES, 'UTF-8') . '</p>',
-            '2026-08-12 10:00:00',
-            1,
-            'Administrator',
+            $publishedAt,
+            $modifiedByUserId,
+            'Izmjenitelj ' . $modifiedByUserId,
             true,
         );
 

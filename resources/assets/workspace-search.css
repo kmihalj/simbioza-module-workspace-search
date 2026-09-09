@@ -21,6 +21,23 @@
     overflow-y: auto;
 }
 
+.hph-workspace-search__author-picker .dropdown-menu {
+    min-width: 100%;
+    width: max-content;
+    max-width: min(34rem, 90vw);
+}
+
+.hph-workspace-search__author-list {
+    max-height: 17rem;
+    overflow-y: auto;
+}
+
+.hph-workspace-search__table th a {
+    color: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
 .hph-workspace-search-control {
     align-items: center;
     display: flex;
@@ -33,5 +50,45 @@
         min-width: 0;
         width: 100%;
         margin: .75rem 0;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .hph-workspace-search__table-wrap {
+        overflow: visible;
+    }
+
+    .hph-workspace-search__table,
+    .hph-workspace-search__table tbody,
+    .hph-workspace-search__table tr,
+    .hph-workspace-search__table td {
+        display: block;
+        width: 100%;
+    }
+
+    .hph-workspace-search__table thead {
+        display: none;
+    }
+
+    .hph-workspace-search__table tr {
+        border: 1px solid var(--hph-border-color, var(--bs-border-color));
+        border-radius: .5rem;
+        margin-bottom: .75rem;
+        padding: .35rem .65rem;
+    }
+
+    .hph-workspace-search__table td {
+        display: grid;
+        grid-template-columns: minmax(6.5rem, 36%) minmax(0, 1fr);
+        gap: .5rem;
+        border: 0;
+        padding: .4rem 0;
+    }
+
+    .hph-workspace-search__table td::before {
+        content: attr(data-label);
+        color: var(--bs-secondary-color);
+        font-size: .8rem;
+        font-weight: 700;
     }
 }

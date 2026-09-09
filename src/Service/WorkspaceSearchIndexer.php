@@ -120,7 +120,7 @@ EN: The database timestamp prevents every PHP-FPM process from
 
         $liveKeys = [];
         $indexed = 0;
-        $authorNames = [];
+        $userNames = [];
         $primaryLanguage = $this->workspaceConfig->siteDefaultLanguage();
         $existingByKey = [];
         foreach ($full ? [] : $existingRows as $existing) {
@@ -202,13 +202,14 @@ EN: The database timestamp prevents every PHP-FPM process from
                     $localizedNode = $this->workspaces->localizeNode($node, $language, $primaryLanguage);
 
                     $nodeId = WorkspaceValue::int($node['id'] ?? 0);
-                    $authorId = WorkspaceValue::int($row['published_by_user_id'] ?? 0);
-                    if ($authorId > 0 && !array_key_exists($authorId, $authorNames)) {
-                        $author = $this->users->findByIdIncludingInactive($authorId);
-                        $authorNames[$authorId] = is_array($author)
-                        ? WorkspaceValue::string($author['display_name'] ?? $author['login_identifier'] ?? '')
-                        : '';
-                    }
+                    $authorId = WorkspaceValue::int($node['created_by_user_id'] ?? 0);
+                    $authorName = $this->userLabel($authorId, '', $userNames);
+                    $modifiedByUserId = is_int($version->createdByUserId) ? $version->createdByUserId : 0;
+                    $modifiedByName = $this->userLabel(
+                        $modifiedByUserId,
+                        $version->createdByDisplayName,
+                        $userNames,
+                    );
 
                     $body = $this->plainText($version->html);
                     $title = trim($version->title) !== ''
@@ -219,6 +220,10 @@ EN: The database timestamp prevents every PHP-FPM process from
                     $body,
                     (string)$version->versionNumber,
                     WorkspaceValue::string($row['published_at'] ?? ''),
+                    (string)$authorId,
+                    (string)$modifiedByUserId,
+                    $modifiedByName,
+                    $version->createdAt,
                     ]));
                     $liveKey = $nodeId . ':' . $language;
                     $liveKeys[] = $liveKey;
@@ -240,8 +245,11 @@ EN: The database timestamp prevents every PHP-FPM process from
                     'body_text' => $body,
                     'normalized_text' => $this->normalize($title . ' ' . $body),
                     'author_user_id' => $authorId > 0 ? $authorId : null,
-                    'author_name' => $authorId > 0 ? $authorNames[$authorId] : null,
+                    'author_name' => $authorName !== '' ? $authorName : null,
                     'published_at' => WorkspaceValue::string($row['published_at'] ?? '') ?: null,
+                    'modified_by_user_id' => $modifiedByUserId > 0 ? $modifiedByUserId : null,
+                    'modified_by_name' => $modifiedByName !== '' ? $modifiedByName : null,
+                    'modified_at' => trim($version->createdAt) !== '' ? trim($version->createdAt) : null,
                     'version_number' => $version->versionNumber,
                     'content_hash' => $hash,
                     'indexed_at' => $now,
@@ -250,6 +258,7 @@ EN: The database timestamp prevents every PHP-FPM process from
                     ], ['node_id', 'language_code'], [
                     'workspace_id', 'workspace_slug', 'workspace_name', 'node_slug', 'document_key', 'title',
                     'body_text', 'normalized_text', 'author_user_id', 'author_name', 'published_at',
+                    'modified_by_user_id', 'modified_by_name', 'modified_at',
                     'version_number', 'content_hash', 'indexed_at', 'updated_at',
                     ]);
                     ++$indexed;
@@ -343,10 +352,16 @@ EN: The database timestamp prevents every PHP-FPM process from
             ];
         }
 
-        $authorId = WorkspaceValue::int($context['published_by_user_id'] ?? 0);
-        $authorName = $authorId > 0
-        ? WorkspaceValue::string($context['author_login_identifier'] ?? '')
-        : null;
+        $node = $this->workspaces->findNodeById($nodeId);
+        $authorId = WorkspaceValue::int($node['created_by_user_id'] ?? 0);
+        $userNames = [];
+        $authorName = $this->userLabel($authorId, '', $userNames);
+        $modifiedByUserId = is_int($version->createdByUserId) ? $version->createdByUserId : 0;
+        $modifiedByName = $this->userLabel(
+            $modifiedByUserId,
+            $version->createdByDisplayName,
+            $userNames,
+        );
 
         $body = $this->plainText($version->html);
         $primaryLanguage = $this->workspaceConfig->siteDefaultLanguage();
@@ -372,7 +387,16 @@ EN: The database timestamp prevents every PHP-FPM process from
         ? trim($version->title)
         : $localizedNodeTitle;
         $publishedAt = WorkspaceValue::string($context['published_at'] ?? '');
-        $hash = hash('sha256', implode("\n", [$title, $body, (string)$versionNumber, $publishedAt]));
+        $hash = hash('sha256', implode("\n", [
+            $title,
+            $body,
+            (string)$versionNumber,
+            $publishedAt,
+            (string)$authorId,
+            (string)$modifiedByUserId,
+            $modifiedByName,
+            $version->createdAt,
+        ]));
         $now = date('Y-m-d H:i:s');
         $this->database->table(ModuleWorkspaceSearch::TABLE_INDEX)->upsert([
         'workspace_id' => $workspaceId,
@@ -386,8 +410,11 @@ EN: The database timestamp prevents every PHP-FPM process from
         'body_text' => $body,
         'normalized_text' => $this->normalize($title . ' ' . $body),
         'author_user_id' => $authorId > 0 ? $authorId : null,
-        'author_name' => $authorName,
+        'author_name' => $authorName !== '' ? $authorName : null,
         'published_at' => $publishedAt !== '' ? $publishedAt : null,
+        'modified_by_user_id' => $modifiedByUserId > 0 ? $modifiedByUserId : null,
+        'modified_by_name' => $modifiedByName !== '' ? $modifiedByName : null,
+        'modified_at' => trim($version->createdAt) !== '' ? trim($version->createdAt) : null,
         'version_number' => $versionNumber,
         'content_hash' => $hash,
         'indexed_at' => $now,
@@ -396,6 +423,7 @@ EN: The database timestamp prevents every PHP-FPM process from
         ], ['node_id', 'language_code'], [
         'workspace_id', 'workspace_slug', 'workspace_name', 'node_slug', 'document_key', 'title',
         'body_text', 'normalized_text', 'author_user_id', 'author_name', 'published_at',
+        'modified_by_user_id', 'modified_by_name', 'modified_at',
         'version_number', 'content_hash', 'indexed_at', 'updated_at',
         ]);
 
@@ -437,6 +465,33 @@ EN: The database timestamp prevents every PHP-FPM process from
         $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
         return trim((string)preg_replace('/\s+/u', ' ', $text));
+    }
+
+    /**
+     * HR: Oblikuje korisničko ime kao Prezime Ime i rezultat predmemorira za obnovu indeksa.
+     * EN: Formats a user name as Surname Given-name and caches it for an index rebuild.
+     *
+     * @param array<int,string> $cache
+     */
+    private function userLabel(int $userId, string $fallback, array &$cache): string
+    {
+        if ($userId <= 0) {
+            return trim($fallback);
+        }
+
+        if (!array_key_exists($userId, $cache)) {
+            $user = $this->users->findByIdIncludingInactive($userId);
+            $lastName = is_array($user) ? WorkspaceValue::string($user['last_name'] ?? '') : '';
+            $firstName = is_array($user) ? WorkspaceValue::string($user['first_name'] ?? '') : '';
+            $personName = trim($lastName . ' ' . $firstName);
+            $cache[$userId] = $personName !== ''
+                ? $personName
+                : (is_array($user)
+                    ? WorkspaceValue::string($user['display_name'] ?? $user['login_identifier'] ?? '')
+                    : trim($fallback));
+        }
+
+        return $cache[$userId];
     }
 
     /**

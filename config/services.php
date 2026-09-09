@@ -80,6 +80,7 @@ $services = [
             $container->get(WorkspaceConfig::class),
             $container->get(TranslatorInterface::class),
             $container->get(UrlGenerator::class),
+            $container->get(AuthUserService::class),
             $container->get(\Psr\EventDispatcher\EventDispatcherInterface::class),
             $container->get(LoggerInterface::class),
         ),

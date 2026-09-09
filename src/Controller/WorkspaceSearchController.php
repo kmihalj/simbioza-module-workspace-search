@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Controller;
 
+use AaiEduHr\HeartPhrameModuleAuth\Service\AuthUserService;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceAccessService;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceConfig;
 use AaiEduHr\SimbiozaModuleWorkspaceSearch\Event\WorkspaceSearchPerformed;
@@ -37,6 +38,7 @@ final readonly class WorkspaceSearchController
         private WorkspaceConfig $workspaceConfig,
         private TranslatorInterface $translator,
         private UrlGenerator $urls,
+        private AuthUserService $users,
         private ?EventDispatcherInterface $events = null,
         private ?LoggerInterface $logger = null,
     ) {
@@ -70,6 +72,12 @@ final readonly class WorkspaceSearchController
             is_array($user) && is_numeric($user['id'] ?? null),
         ));
 
+        $resultFilters = is_array($result['filters'] ?? null) ? $result['filters'] : [];
+        $authorId = is_numeric($resultFilters['author'] ?? null)
+            ? (int)$resultFilters['author']
+            : 0;
+        $selectedAuthor = $authorId > 0 ? $this->users->findByIdIncludingInactive($authorId) : null;
+
         return $this->views->render('search/index', [
         'title' => __('Workspace search'),
         'themeTitleContext' => 'integrated',
@@ -82,8 +90,32 @@ final readonly class WorkspaceSearchController
         'minimumQueryLength' => $this->config->minimumQueryLength(),
         'assetsCssPath' => $this->path('workspace-search.assets.css', '/search/assets.css'),
         'searchPath' => $this->path('workspace-search.index', '/search'),
+        'authorLookupPath' => is_array($user)
+            ? $this->path('workspace-search.lookup.authors', '/search/lookups/authors')
+            : '',
+        'selectedAuthorLabel' => is_array($selectedAuthor)
+            ? $this->userLabel($selectedAuthor, $authorId)
+            : '',
         'paginationQuery' => $this->paginationQuery($query),
         ]);
+    }
+
+    /** HR: Vraća jednu ograničenu stranicu svih autora za udaljeni birač. EN: Returns one bounded page of all authors for the remote picker. */
+    public function authors(ServerRequestInterface $request): ResponseInterface
+    {
+        if (!is_array($this->access->currentUser())) {
+            return $this->responses->json(['ok' => false, 'error' => __('Pristup nije dozvoljen')], 403);
+        }
+
+        $query = $request->getQueryParams();
+        $search = $this->string($query['q'] ?? '');
+        $page = is_numeric($query['page'] ?? null) ? max(1, (int)$query['page']) : 1;
+        $language = $this->language($query['lang'] ?? $this->translator->getLocale());
+
+        return $this->responses->json([
+            'ok' => true,
+            ...$this->users->userLookupPage($search, $page, 25, [], $language),
+        ], 200, ['Cache-Control' => 'no-store']);
     }
 
     /**
@@ -179,6 +211,29 @@ final readonly class WorkspaceSearchController
     private function string(mixed $value): string
     {
         return is_scalar($value) ? trim((string)$value) : '';
+    }
+
+    /**
+     * HR: Prikazuje odabranog autora istim redoslijedom Prezime Ime kao lookup.
+     * EN: Displays the selected author in the same Surname Given-name order as the lookup.
+     *
+     * @param array<string,mixed> $user
+     */
+    private function userLabel(array $user, int $userId): string
+    {
+        $name = trim($this->string($user['last_name'] ?? '') . ' ' . $this->string($user['first_name'] ?? ''));
+        if ($name !== '') {
+            return $name;
+        }
+
+        foreach (['display_name', 'login_identifier'] as $key) {
+            $fallback = $this->string($user[$key] ?? '');
+            if ($fallback !== '') {
+                return $fallback;
+            }
+        }
+
+        return __('Korisnik') . ' #' . $userId;
     }
 
     /**

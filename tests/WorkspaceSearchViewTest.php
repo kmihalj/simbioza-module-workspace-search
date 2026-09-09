@@ -77,7 +77,11 @@ final class WorkspaceSearchViewTest extends TestCase
         $view = file_get_contents(dirname(__DIR__) . '/views/search/index.php');
 
         $this->assertIsString($view);
-        $this->assertStringContainsString('If you simply enter one or more words', $view);
+        $this->assertStringContainsString('How search works', $view);
+        $this->assertStringContainsString('Select one Workspace without a search term', $view);
+        $this->assertStringContainsString('pages they created or last modified', $view);
+        $this->assertStringContainsString('You can combine the search term', $view);
+        $this->assertStringContainsString('two or more Workspaces are selected', $view);
         $this->assertStringContainsString('+part +second +"Part 2"', $view);
     }
 
@@ -89,5 +93,30 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertIsString($view);
         $this->assertStringContainsString('name="lang"', $view);
         $this->assertStringContainsString("\$result['language']", $view);
+    }
+
+    /** HR: Autor koristi udaljeni birač s ograničenim stranicama i dodatnim učitavanjem. EN: Author uses a remote paged picker with load-more support. */
+    public function testAuthorUsesRemotePagedPicker(): void
+    {
+        $view = file_get_contents(dirname(__DIR__) . '/views/search/index.php');
+
+        $this->assertIsString($view);
+        $this->assertStringContainsString('data-workspace-search-author-picker', $view);
+        $this->assertStringContainsString('data-author-more', $view);
+        $this->assertStringContainsString("url.searchParams.set('page'", $view);
+        $this->assertStringContainsString("__('Load more')", $view);
+    }
+
+    /** HR: Prazan pojam prikazuje sortirljivu tablicu sa svim traženim kolonama. EN: An empty term renders the sortable table with every requested column. */
+    public function testBrowseModeUsesSortablePageTable(): void
+    {
+        $view = file_get_contents(dirname(__DIR__) . '/views/search/index.php');
+
+        $this->assertIsString($view);
+        $this->assertStringContainsString('$browseMode', $view);
+        $this->assertStringContainsString("'title' => __('Page name')", $view);
+        $this->assertStringContainsString("'modified_at' => __('Last modified')", $view);
+        $this->assertStringContainsString("'modified_by' => __('Modified by')", $view);
+        $this->assertStringContainsString('$sortPath($column)', $view);
     }
 }

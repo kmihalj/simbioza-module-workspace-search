@@ -99,6 +99,13 @@ return new class extends \HeartPhrame\Module\AbstractModuleManifest {
             ],
             [
                 'GET',
+                '/search/lookups/authors',
+                WorkspaceSearchController::class . '@authors',
+                'workspace-search.lookup.authors',
+                [RequireAuthenticatedUserMiddleware::class],
+            ],
+            [
+                'GET',
                 '/settings/workspace-search',
                 WorkspaceSearchSettingsController::class . '@index',
                 'workspace-search.settings',

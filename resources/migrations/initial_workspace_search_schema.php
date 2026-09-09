@@ -36,6 +36,9 @@ return new class implements ReversibleMigrationInterface {
             $table->bigInteger('author_user_id')->unsigned()->nullable()->index();
             $table->string('author_name', 190)->nullable()->index();
             $table->timestamp('published_at')->nullable()->index();
+            $table->bigInteger('modified_by_user_id')->unsigned()->nullable()->index();
+            $table->string('modified_by_name', 190)->nullable()->index();
+            $table->timestamp('modified_at')->nullable()->index();
             $table->integer('version_number')->unsigned();
             $table->string('content_hash', 64)->index();
             $table->timestamp('indexed_at')->nullable()->index();

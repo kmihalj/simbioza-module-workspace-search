@@ -37,7 +37,14 @@ final class WorkspaceSearchSchemaTest extends TestCase
 
         $this->assertTrue($database->schema()->hasColumns(
             ModuleWorkspaceSearch::TABLE_INDEX,
-            ['normalized_text', 'language_code', 'content_hash'],
+            [
+                'normalized_text',
+                'language_code',
+                'content_hash',
+                'modified_by_user_id',
+                'modified_by_name',
+                'modified_at',
+            ],
         ));
 
         $migration->down($database);

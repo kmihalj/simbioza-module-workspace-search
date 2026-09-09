@@ -14,6 +14,8 @@ use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchService;
  * @var int $minimumQueryLength
  * @var string $assetsCssPath
  * @var string $searchPath
+ * @var string $authorLookupPath
+ * @var string $selectedAuthorLabel
  * @var array<string,scalar|list<scalar>> $paginationQuery
  */
 
@@ -25,6 +27,32 @@ $language = WorkspaceValue::string($result['language'] ?? '');
 $total = is_numeric($result['total'] ?? null) ? (int)$result['total'] : 0;
 $page = is_numeric($result['page'] ?? null) ? (int)$result['page'] : 1;
 $pages = is_numeric($result['pages'] ?? null) ? (int)$result['pages'] : 0;
+$searchExecuted = (bool)($result['search_executed'] ?? false);
+$browseMode = (bool)($result['browse_mode'] ?? false);
+$queryTooShort = (bool)($result['query_too_short'] ?? false);
+$queryRequiredForMultipleWorkspaces = (bool)($result['query_required_for_multiple_workspaces'] ?? false);
+$authorValue = WorkspaceValue::string($filters['author'] ?? '');
+$authorLabel = trim($selectedAuthorLabel ?? '') ?: ($authorValue !== '' ? $authorValue : __('All authors'));
+$sort = WorkspaceValue::string($filters['sort'] ?? 'title') ?: 'title';
+$direction = WorkspaceValue::string($filters['direction'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+$sortBaseQuery = $paginationQuery;
+unset($sortBaseQuery['sort'], $sortBaseQuery['direction']);
+$sortPath = static function (string $column) use ($searchPath, $sortBaseQuery, $sort, $direction): string {
+    $nextDirection = $sort === $column && $direction === 'asc' ? 'desc' : 'asc';
+
+    return $searchPath . '?' . http_build_query([
+        ...$sortBaseQuery,
+        'sort' => $column,
+        'direction' => $nextDirection,
+    ]);
+};
+$sortIndicator = static fn(string $column): string => $sort === $column ? ($direction === 'asc' ? ' ▲' : ' ▼') : '';
+$displayDate = static function (mixed $value): string {
+    $raw = is_scalar($value) ? trim((string)$value) : '';
+    $timestamp = $raw !== '' ? strtotime($raw) : false;
+
+    return is_int($timestamp) ? date('d.m.Y.', $timestamp) : $raw;
+};
 $pageNumbers = $pages > 0
     ? array_values(array_unique([
         1,
@@ -89,7 +117,6 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                         type="search"
                         value="<?= $this->escape($query) ?>"
                         minlength="<?= $this->escape((string)$minimumQueryLength) ?>"
-                        required
                         autofocus
                     >
                 </div>
@@ -180,12 +207,63 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label" for="workspace-search-author"><?= $this->escape(__('Author')) ?></label>
-                    <input
-                        class="form-control"
-                        id="workspace-search-author"
-                        name="author"
-                        value="<?= $this->escape(WorkspaceValue::string($filters['author'] ?? '')) ?>"
+                    <div
+                        class="dropdown hph-workspace-search__author-picker"
+                        data-workspace-search-author-picker
+                        data-endpoint="<?= $this->escape($authorLookupPath) ?>"
+                        data-all-label="<?= $this->escape(__('All authors')) ?>"
                     >
+                        <input
+                            type="hidden"
+                            id="workspace-search-author"
+                            name="author"
+                            value="<?= $this->escape($authorValue) ?>"
+                            data-author-value
+                        >
+                        <button
+                            class="form-select text-start"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            data-bs-auto-close="outside"
+                            aria-expanded="false"
+                            data-author-toggle
+                            <?= $authorLookupPath === '' ? 'disabled' : '' ?>
+                        ><?= $this->escape(
+                            $authorLookupPath !== '' ? $authorLabel : __('Sign in to select an author'),
+                        ) ?></button>
+                        <?php if ($authorLookupPath !== '') : ?>
+                            <div class="dropdown-menu w-100 p-3 shadow">
+                                <input
+                                    class="form-control mb-2"
+                                    type="search"
+                                    autocomplete="off"
+                                    placeholder="<?= $this->escape(__('Search authors')) ?>"
+                                    aria-label="<?= $this->escape(__('Search authors')) ?>"
+                                    data-author-search
+                                >
+                                <div class="small text-body-secondary mb-2" data-author-loading hidden>
+                                    <?= $this->escape(__('Loading authors...')) ?>
+                                </div>
+                                <div class="alert alert-danger py-2" data-author-error hidden></div>
+                                <div
+                                    class="list-group list-group-flush hph-workspace-search__author-list"
+                                    data-author-list
+                                ></div>
+                                <div class="small text-body-secondary mt-2" data-author-empty hidden>
+                                    <?= $this->escape(__('No authors match the search.')) ?>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between gap-2 mt-2">
+                                    <span class="small text-body-secondary" data-author-count></span>
+                                    <button
+                                        class="btn btn-sm btn-outline-secondary"
+                                        type="button"
+                                        data-author-more
+                                        hidden
+                                    ><?= $this->escape(__('Load more')) ?></button>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <div class="col-6 col-md-4">
                     <label class="form-label" for="workspace-search-from">
@@ -211,22 +289,49 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                         value="<?= $this->escape(WorkspaceValue::string($filters['to'] ?? '')) ?>"
                     >
                 </div>
-                <div class="col-12">
-                    <p class="form-text mb-0">
-                        <?= $this->escape(__(
-                            'If you simply enter one or more words, '
-                            . 'the entire input is searched as one phrase. '
-                            . 'If the result must contain several separate words or phrases, put + before each one. '
-                            . 'Example: +part +second +"Part 2" finds content containing the word “part”, '
-                            . 'the word “second”, and the phrase “Part 2”.',
-                        )) ?>
-                    </p>
-                </div>
             </div>
         </div>
     </form>
 
-    <?php if (mb_strlen($query) >= $minimumQueryLength) : ?>
+    <aside class="card shadow-sm mt-3 hph-workspace-search__help" aria-labelledby="workspace-search-help-title">
+        <div class="card-body">
+            <h2 class="h5" id="workspace-search-help-title"><?= $this->escape(__('How search works')) ?></h2>
+            <ul class="mb-0">
+                <li>
+                    <?= $this->escape(__(
+                        'Select one Workspace without a search term to list all its visible pages.',
+                    )) ?>
+                </li>
+                <li>
+                    <?= $this->escape(__(
+                        'Select an author without a search term to list pages they created or last modified.',
+                    )) ?>
+                </li>
+                <li>
+                    <?= $this->escape(__(
+                        'Publication dates limit the results by publication date. '
+                        . 'If only the start date is entered, the end date is set to today; '
+                        . 'if only the end date is entered, all earlier dates are included.',
+                    )) ?>
+                </li>
+                <li>
+                    <?= $this->escape(__('A search term is required when two or more Workspaces are selected.')) ?>
+                </li>
+                <li>
+                    <?= $this->escape(__(
+                        'You can combine the search term, Workspace, author, and publication dates; '
+                        . 'every selected criterion narrows the results.',
+                    )) ?>
+                </li>
+                <li><?= $this->escape(__(
+                    'Without operators, the entered words are searched as one phrase. '
+                    . 'Use + before each required word or quoted phrase, for example: +part +second +"Part 2".',
+                )) ?></li>
+            </ul>
+        </div>
+    </aside>
+
+    <?php if ($searchExecuted) : ?>
         <p class="text-muted mt-4 mb-3">
             <?= $this->escape(sprintf(__('Results found: %d'), $total)) ?>
         </p>
@@ -236,35 +341,87 @@ $workspaceSelectionLabel = $allWorkspacesSelected
             </div>
         <?php endif; ?>
 
-        <div class="vstack gap-3">
-            <?php foreach ($items as $item) : ?>
-                <article class="card shadow-sm hph-workspace-search__result">
-                    <div class="card-body">
-                        <h2 class="h4 mb-1">
-                            <a href="<?= $this->escape(WorkspaceValue::string($item['url'] ?? '#')) ?>">
-                                <?= $this->escape(WorkspaceValue::string($item['title'] ?? '')) ?>
-                            </a>
-                        </h2>
-                        <p class="small text-muted mb-2">
-                            <?php if (WorkspaceValue::string($item['result_type'] ?? 'page') === 'workspace') : ?>
-                                <span class="badge text-bg-secondary"><?= $this->escape(__('Workspace')) ?></span>
-                            <?php else : ?>
-                                <?= $this->escape(WorkspaceValue::string($item['workspace_name'] ?? '')) ?>
-                                <?php if (WorkspaceValue::string($item['author_name'] ?? '') !== '') : ?>
-                                    · <?= $this->escape(WorkspaceValue::string($item['author_name'])) ?>
+        <?php if ($browseMode) : ?>
+            <div class="table-responsive hph-workspace-search__table-wrap">
+                <table class="table table-hover align-middle hph-workspace-search__table">
+                    <thead>
+                    <tr>
+                        <?php foreach (
+                        [
+                            'title' => __('Page name'),
+                            'author' => __('Author'),
+                            'published_at' => __('Published'),
+                            'modified_at' => __('Last modified'),
+                            'modified_by' => __('Modified by'),
+                        ] as $column => $label
+) : ?>
+                            <th scope="col">
+                                <a href="<?= $this->escape($sortPath($column)) ?>">
+                                    <?= $this->escape($label . $sortIndicator($column)) ?>
+                                </a>
+                            </th>
+                        <?php endforeach; ?>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($items as $item) : ?>
+                        <tr>
+                            <td data-label="<?= $this->escape(__('Page name')) ?>">
+                                <a href="<?= $this->escape(WorkspaceValue::string($item['url'] ?? '#')) ?>">
+                                    <?= $this->escape(WorkspaceValue::string($item['title'] ?? '')) ?>
+                                </a>
+                                <small class="d-block text-body-secondary">
+                                    <?= $this->escape(WorkspaceValue::string($item['workspace_name'] ?? '')) ?>
+                                </small>
+                            </td>
+                            <td data-label="<?= $this->escape(__('Author')) ?>">
+                                <?= $this->escape(WorkspaceValue::string($item['author_name'] ?? '')) ?>
+                            </td>
+                            <td data-label="<?= $this->escape(__('Published')) ?>">
+                                <?= $this->escape($displayDate($item['published_at'] ?? '')) ?>
+                            </td>
+                            <td data-label="<?= $this->escape(__('Last modified')) ?>">
+                                <?= $this->escape($displayDate($item['modified_at'] ?? '')) ?>
+                            </td>
+                            <td data-label="<?= $this->escape(__('Modified by')) ?>">
+                                <?= $this->escape(WorkspaceValue::string($item['modified_by_name'] ?? '')) ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else : ?>
+            <div class="vstack gap-3">
+                <?php foreach ($items as $item) : ?>
+                    <article class="card shadow-sm hph-workspace-search__result">
+                        <div class="card-body">
+                            <h2 class="h4 mb-1">
+                                <a href="<?= $this->escape(WorkspaceValue::string($item['url'] ?? '#')) ?>">
+                                    <?= $this->escape(WorkspaceValue::string($item['title'] ?? '')) ?>
+                                </a>
+                            </h2>
+                            <p class="small text-muted mb-2">
+                                <?php if (WorkspaceValue::string($item['result_type'] ?? 'page') === 'workspace') : ?>
+                                    <span class="badge text-bg-secondary"><?= $this->escape(__('Workspace')) ?></span>
+                                <?php else : ?>
+                                    <?= $this->escape(WorkspaceValue::string($item['workspace_name'] ?? '')) ?>
+                                    <?php if (WorkspaceValue::string($item['author_name'] ?? '') !== '') : ?>
+                                        · <?= $this->escape(WorkspaceValue::string($item['author_name'])) ?>
+                                    <?php endif; ?>
+                                    <?php if (WorkspaceValue::string($item['published_at'] ?? '') !== '') : ?>
+                                        · <?= $this->escape($displayDate($item['published_at'] ?? '')) ?>
+                                    <?php endif; ?>
                                 <?php endif; ?>
-                                <?php if (WorkspaceValue::string($item['published_at'] ?? '') !== '') : ?>
-                                    · <?= $this->escape(WorkspaceValue::string($item['published_at'])) ?>
-                                <?php endif; ?>
+                            </p>
+                            <?php if (WorkspaceValue::string($item['snippet_html'] ?? '') !== '') : ?>
+                                <p class="mb-0"><?= WorkspaceValue::string($item['snippet_html'] ?? '') ?></p>
                             <?php endif; ?>
-                        </p>
-                        <?php if (WorkspaceValue::string($item['snippet_html'] ?? '') !== '') : ?>
-                            <p class="mb-0"><?= WorkspaceValue::string($item['snippet_html'] ?? '') ?></p>
-                        <?php endif; ?>
-                    </div>
-                </article>
-            <?php endforeach; ?>
-        </div>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
         <?php if ($pages > 1) : ?>
             <nav class="mt-4" aria-label="<?= $this->escape(__('Result pages')) ?>">
@@ -305,9 +462,17 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                 </ul>
             </nav>
         <?php endif; ?>
-    <?php else : ?>
+    <?php elseif ($queryTooShort) : ?>
         <p class="text-muted mt-4">
             <?= $this->escape(sprintf(__('Enter at least %d characters.'), $minimumQueryLength)) ?>
+        </p>
+    <?php elseif ($queryRequiredForMultipleWorkspaces) : ?>
+        <p class="text-muted mt-4">
+            <?= $this->escape(__('Enter a search term when two or more Workspaces are selected.')) ?>
+        </p>
+    <?php else : ?>
+        <p class="text-muted mt-4">
+            <?= $this->escape(__('Enter a search term or select a Workspace, author, or publication date.')) ?>
         </p>
     <?php endif; ?>
 </section>
@@ -348,5 +513,178 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                 scope.addEventListener('change', function () { synchronize(scope); });
             });
             synchronize(null);
+        });
+
+        document.querySelectorAll('[data-workspace-search-author-picker]').forEach(function (picker) {
+            var endpoint = String(picker.dataset.endpoint || '');
+            var allLabel = String(picker.dataset.allLabel || '');
+            var value = picker.querySelector('[data-author-value]');
+            var toggle = picker.querySelector('[data-author-toggle]');
+            var search = picker.querySelector('[data-author-search]');
+            var loading = picker.querySelector('[data-author-loading]');
+            var errorBox = picker.querySelector('[data-author-error]');
+            var list = picker.querySelector('[data-author-list]');
+            var empty = picker.querySelector('[data-author-empty]');
+            var count = picker.querySelector('[data-author-count]');
+            var more = picker.querySelector('[data-author-more]');
+            var state = { page: 0, hasMore: false, loading: false, loaded: false, sequence: 0, timer: 0 };
+            if (endpoint === '' || !list) {
+                return;
+            }
+
+            function optionButton(id, label) {
+                var button = document.createElement('button');
+                button.className = 'list-group-item list-group-item-action';
+                button.type = 'button';
+                button.dataset.authorChoice = String(id || '');
+                button.dataset.authorLabel = label;
+                button.textContent = label;
+                button.classList.toggle('active', String(value?.value || '') === String(id || ''));
+                return button;
+            }
+
+            function render(items, append) {
+                if (!append) {
+                    list.replaceChildren(optionButton('', allLabel));
+                }
+                Array.from(items || []).forEach(function (item) {
+                    var id = Number(item?.id || 0);
+                    var label = String(item?.label || '').trim();
+                    if (id > 0 && label !== '') {
+                        list.appendChild(optionButton(String(id), label));
+                    }
+                });
+                var resultCount = Math.max(0, list.children.length - 1);
+                empty?.toggleAttribute('hidden', resultCount > 0);
+                if (count) {
+                    count.textContent = <?= json_encode(__('Shown: %d'), JSON_UNESCAPED_UNICODE) ?>
+                        .replace('%d', String(resultCount));
+                }
+            }
+
+            async function load(page, append) {
+                var sequence = ++state.sequence;
+                state.loading = true;
+                loading?.removeAttribute('hidden');
+                errorBox?.setAttribute('hidden', '');
+                var url = new URL(endpoint, window.location.href);
+                url.searchParams.set('q', String(search?.value || '').trim());
+                url.searchParams.set('page', String(page));
+                try {
+                    var response = await fetch(url.toString(), {
+                        credentials: 'same-origin',
+                        headers: { Accept: 'application/json' }
+                    });
+                    var payload = await response.json();
+                    if (sequence !== state.sequence) {
+                        return;
+                    }
+                    if (!response.ok || payload?.ok !== true) {
+                        throw new Error(String(payload?.error || <?= json_encode(
+                            __('The author list could not be loaded.'),
+                        ) ?>));
+                    }
+                    render(payload.items, append);
+                    state.page = Number(payload.page || page) || 1;
+                    state.hasMore = payload.hasMore === true;
+                    state.loaded = true;
+                    more?.toggleAttribute('hidden', !state.hasMore);
+                } catch (error) {
+                    if (sequence !== state.sequence) {
+                        return;
+                    }
+                    if (!append) {
+                        render([], false);
+                    }
+                    if (errorBox) {
+                        errorBox.textContent = error instanceof Error
+                            ? error.message
+                            : <?= json_encode(__('The author list could not be loaded.')) ?>;
+                        errorBox.removeAttribute('hidden');
+                    }
+                } finally {
+                    if (sequence === state.sequence) {
+                        state.loading = false;
+                        loading?.setAttribute('hidden', '');
+                    }
+                }
+            }
+
+            list.addEventListener('click', function (event) {
+                var option = event.target instanceof Element ? event.target.closest('[data-author-choice]') : null;
+                if (!option || !list.contains(option)) {
+                    return;
+                }
+                var id = String(option.dataset.authorChoice || '');
+                var label = String(option.dataset.authorLabel || allLabel);
+                if (value) {
+                    value.value = id;
+                }
+                if (toggle) {
+                    toggle.textContent = label;
+                }
+                Array.from(list.children).forEach(function (candidate) {
+                    candidate.classList.toggle('active', candidate === option);
+                });
+                if (toggle && window.bootstrap?.Dropdown) {
+                    window.bootstrap.Dropdown.getOrCreateInstance(toggle).hide();
+                }
+            });
+            search?.addEventListener('input', function () {
+                window.clearTimeout(state.timer);
+                state.timer = window.setTimeout(function () { load(1, false); }, 250);
+            });
+            more?.addEventListener('click', function () {
+                if (state.hasMore && !state.loading) {
+                    load(state.page + 1, true);
+                }
+            });
+            picker.addEventListener('shown.bs.dropdown', function () {
+                if (!state.loaded && !state.loading) {
+                    load(1, false);
+                }
+                search?.focus();
+            });
+            toggle?.addEventListener('click', function () {
+                if (!state.loaded && !state.loading) {
+                    load(1, false);
+                }
+            });
+        });
+
+        document.querySelectorAll('.hph-workspace-search__form').forEach(function (form) {
+            var query = form.querySelector('[name="q"]');
+            var allWorkspaces = form.querySelector('[data-workspace-search-scope-all]');
+            var workspaceScopes = Array.from(form.querySelectorAll('[data-workspace-search-scope]'));
+            var author = form.querySelector('[data-author-value]');
+            var from = form.querySelector('[name="from"]');
+            var to = form.querySelector('[name="to"]');
+            var missingFilterMessage = <?= json_encode(
+                __('Enter a search term or select a Workspace, author, or publication date.'),
+                JSON_UNESCAPED_UNICODE,
+            ) ?>;
+            var multipleWorkspacesMessage = <?= json_encode(
+                __('Enter a search term when two or more Workspaces are selected.'),
+                JSON_UNESCAPED_UNICODE,
+            ) ?>;
+            form.addEventListener('submit', function (event) {
+                var selectedWorkspaceCount = workspaceScopes.filter(function (scope) {
+                    return scope.checked;
+                }).length;
+                var emptyQuery = String(query?.value || '').trim() === '';
+                var needsFilter = allWorkspaces?.checked
+                    && String(author?.value || '') === ''
+                    && String(from?.value || '') === ''
+                    && String(to?.value || '') === '';
+                var message = emptyQuery && selectedWorkspaceCount > 1
+                    ? multipleWorkspacesMessage
+                    : (emptyQuery && needsFilter ? missingFilterMessage : '');
+                query?.setCustomValidity(message);
+                if (query && !query.checkValidity()) {
+                    event.preventDefault();
+                    query.reportValidity();
+                }
+            });
+            query?.addEventListener('input', function () { query.setCustomValidity(''); });
         });
 </script>
