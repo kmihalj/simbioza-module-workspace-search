@@ -52,14 +52,14 @@ final readonly class HpWorkspaceSearchCommand
         $source = dirname(__DIR__, 2) . '/resources/migrations/initial_workspace_search_schema.php';
         $destination = $target . '/' . date('YmdHis') . '_install_workspace_search_schema.php';
         if (!is_dir($target) && !mkdir($target, 0777, true) && !is_dir($target)) {
-            throw new RuntimeException(__('Unable to create the migrations directory.'));
+            throw new RuntimeException(__('Nije moguće stvoriti direktorij migracija.'));
         }
 
         if (!copy($source, $destination)) {
-            throw new RuntimeException(__('Unable to copy the Workspace Search migration.'));
+            throw new RuntimeException(__('Nije moguće kopirati Workspace Search migraciju.'));
         }
 
-        fwrite(STDOUT, __('Migration created: ') . $destination . PHP_EOL);
+        fwrite(STDOUT, __('Migracija je stvorena: ') . $destination . PHP_EOL);
 
         return 0;
     }
@@ -83,7 +83,7 @@ final readonly class HpWorkspaceSearchCommand
         ? $this->indexer->rebuildWorkspace($workspaceId)
         : $this->indexer->rebuild(true);
         fwrite(STDOUT, sprintf(
-            __('Pages indexed: %d; stale rows removed: %d.'),
+            __('Indeksirano stranica: %d; uklonjeno starih redaka: %d.'),
             $result['indexed'],
             $result['removed'],
         ) . PHP_EOL);

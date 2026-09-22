@@ -18,8 +18,8 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertIsString($view);
         $this->assertStringContainsString('$page - 2', $view);
         $this->assertStringContainsString('$page + 2', $view);
-        $this->assertStringContainsString("__('Previous page')", $view);
-        $this->assertStringContainsString("__('Next page')", $view);
+        $this->assertStringContainsString("__('Prethodna stranica')", $view);
+        $this->assertStringContainsString("__('Sljedeća stranica')", $view);
         $this->assertStringNotContainsString('for ($number = 1; $number <= $pages;', $view);
     }
 
@@ -31,7 +31,7 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertIsString($view);
         $this->assertStringContainsString("['result_type']", $view);
         $this->assertStringContainsString("=== 'workspace'", $view);
-        $this->assertStringContainsString("__('Workspace')", $view);
+        $this->assertStringContainsString("__('Područje')", $view);
     }
 
     /** HR: Filter ne ispisuje stotine osobnih područja nego jednu skupnu mogućnost. EN: The filter presents one aggregate choice instead of hundreds of personal Workspaces. */
@@ -41,7 +41,7 @@ final class WorkspaceSearchViewTest extends TestCase
 
         $this->assertIsString($view);
         $this->assertStringContainsString('PERSONAL_WORKSPACES_FILTER', $view);
-        $this->assertStringContainsString("__('Personal Workspaces')", $view);
+        $this->assertStringContainsString("__('Osobna područja')", $view);
         $this->assertStringContainsString("['is_personal_workspace']", $view);
     }
 
@@ -77,12 +77,12 @@ final class WorkspaceSearchViewTest extends TestCase
         $view = file_get_contents(dirname(__DIR__) . '/views/search/index.php');
 
         $this->assertIsString($view);
-        $this->assertStringContainsString('How search works', $view);
-        $this->assertStringContainsString('Select one Workspace without a search term', $view);
-        $this->assertStringContainsString('pages they created or last modified', $view);
-        $this->assertStringContainsString('You can combine the search term', $view);
-        $this->assertStringContainsString('two or more Workspaces are selected', $view);
-        $this->assertStringContainsString('+part +second +"Part 2"', $view);
+        $this->assertStringContainsString('Kako radi pretraga', $view);
+        $this->assertStringContainsString('Odaberite jedno područje bez traženog pojma', $view);
+        $this->assertStringContainsString('stranica koje je stvorio ili zadnji izmijenio', $view);
+        $this->assertStringContainsString('Traženi pojam, područje, autora', $view);
+        $this->assertStringContainsString('dva ili više područja', $view);
+        $this->assertStringContainsString('+dio +drugi +"Dio 2"', $view);
     }
 
     /** HR: Slanje forme zadržava odabrani jezik pretrage. EN: Submitting the form preserves the selected search language. */
@@ -104,7 +104,7 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString('data-workspace-search-author-picker', $view);
         $this->assertStringContainsString('data-author-more', $view);
         $this->assertStringContainsString("url.searchParams.set('page'", $view);
-        $this->assertStringContainsString("__('Load more')", $view);
+        $this->assertStringContainsString("__('Učitaj još')", $view);
     }
 
     /** HR: Prazan pojam prikazuje sortirljivu tablicu sa svim traženim kolonama. EN: An empty term renders the sortable table with every requested column. */
@@ -114,9 +114,9 @@ final class WorkspaceSearchViewTest extends TestCase
 
         $this->assertIsString($view);
         $this->assertStringContainsString('$browseMode', $view);
-        $this->assertStringContainsString("'title' => __('Page name')", $view);
-        $this->assertStringContainsString("'modified_at' => __('Last modified')", $view);
-        $this->assertStringContainsString("'modified_by' => __('Modified by')", $view);
+        $this->assertStringContainsString("'title' => __('Ime stranice')", $view);
+        $this->assertStringContainsString("'modified_at' => __('Zadnja izmjena')", $view);
+        $this->assertStringContainsString("'modified_by' => __('Izmijenio')", $view);
         $this->assertStringContainsString('$sortPath($column)', $view);
     }
 }

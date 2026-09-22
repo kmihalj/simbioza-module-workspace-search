@@ -79,12 +79,12 @@ final readonly class WorkspaceSearchController
         $selectedAuthor = $authorId > 0 ? $this->users->findByIdIncludingInactive($authorId) : null;
 
         return $this->views->render('search/index', [
-        'title' => __('Workspace search'),
+        'title' => __('Pretraga područja'),
         'themeTitleContext' => 'integrated',
         'themeHero' => [
         'is_home' => false,
-        'title' => __('Workspace search'),
-        'subtitle' => __('Find published content that you are allowed to view.'),
+        'title' => __('Pretraga područja'),
+        'subtitle' => __('Pronađite objavljeni sadržaj koji smijete vidjeti.'),
         ],
         'result' => $result,
         'minimumQueryLength' => $this->config->minimumQueryLength(),

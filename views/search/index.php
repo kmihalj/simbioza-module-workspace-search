@@ -32,7 +32,7 @@ $browseMode = (bool)($result['browse_mode'] ?? false);
 $queryTooShort = (bool)($result['query_too_short'] ?? false);
 $queryRequiredForMultipleWorkspaces = (bool)($result['query_required_for_multiple_workspaces'] ?? false);
 $authorValue = WorkspaceValue::string($filters['author'] ?? '');
-$authorLabel = trim($selectedAuthorLabel ?? '') ?: ($authorValue !== '' ? $authorValue : __('All authors'));
+$authorLabel = trim($selectedAuthorLabel ?? '') ?: ($authorValue !== '' ? $authorValue : __('Svi autori'));
 $sort = WorkspaceValue::string($filters['sort'] ?? 'title') ?: 'title';
 $direction = WorkspaceValue::string($filters['direction'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 $sortBaseQuery = $paginationQuery;
@@ -47,11 +47,16 @@ $sortPath = static function (string $column) use ($searchPath, $sortBaseQuery, $
     ]);
 };
 $sortIndicator = static fn(string $column): string => $sort === $column ? ($direction === 'asc' ? ' ▲' : ' ▼') : '';
-$displayDate = static function (mixed $value): string {
+$displayDate = static function (mixed $value) use ($language): string {
     $raw = is_scalar($value) ? trim((string)$value) : '';
     $timestamp = $raw !== '' ? strtotime($raw) : false;
 
-    return is_int($timestamp) ? date('d.m.Y.', $timestamp) : $raw;
+    return is_int($timestamp)
+        ? \AaiEduHr\HeartPhrameModuleOrm\Database\LocaleDateFormatter::date(
+            $timestamp,
+            $language !== '' ? $language : null,
+        )
+        : $raw;
 };
 $pageNumbers = $pages > 0
     ? array_values(array_unique([
@@ -81,19 +86,19 @@ foreach ($workspaces as $workspace) {
 $selectedWorkspaceLabels = [];
 foreach ($selectedWorkspaceScopes as $scope) {
     if ($scope === $allWorkspaceFilter) {
-        $selectedWorkspaceLabels[] = __('All visible workspaces');
+        $selectedWorkspaceLabels[] = __('Sva vidljiva područja');
     } elseif ($scope === $personalWorkspaceFilter) {
-        $selectedWorkspaceLabels[] = __('Personal Workspaces');
+        $selectedWorkspaceLabels[] = __('Osobna područja');
     } elseif (isset($workspaceNames[$scope])) {
         $selectedWorkspaceLabels[] = $workspaceNames[$scope];
     }
 }
 $allWorkspacesSelected = in_array($allWorkspaceFilter, $selectedWorkspaceScopes, true);
 $workspaceSelectionLabel = $allWorkspacesSelected
-    ? __('All visible workspaces')
+    ? __('Sva vidljiva područja')
     : (count($selectedWorkspaceLabels) === 1
         ? $selectedWorkspaceLabels[0]
-        : sprintf(__('Selected Workspaces: %d'), count($selectedWorkspaceLabels)));
+        : sprintf(__('Odabrana područja: %d'), count($selectedWorkspaceLabels)));
 ?>
 
 <link rel="stylesheet" href="<?= $this->escape($assetsCssPath) ?>">
@@ -109,7 +114,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
         <div class="card-body">
             <div class="row g-3 align-items-end">
                 <div class="col-12 col-lg-6">
-                    <label class="form-label" for="workspace-search-q"><?= $this->escape(__('Search term')) ?></label>
+                    <label class="form-label" for="workspace-search-q"><?= $this->escape(__('Traženi pojam')) ?></label>
                     <input
                         class="form-control form-control-lg"
                         id="workspace-search-q"
@@ -122,7 +127,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                 </div>
                 <div class="col-12 col-md-6 col-lg-3">
                     <label class="form-label" for="workspace-search-workspace-button">
-                        <?= $this->escape(__('Workspace')) ?>
+                        <?= $this->escape(__('Područje')) ?>
                     </label>
                     <div class="dropdown" data-workspace-search-scope-picker>
                             <button
@@ -149,7 +154,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                                         <?= $allWorkspacesSelected ? 'checked' : '' ?>
                                     >
                                     <label class="form-check-label" for="workspace-search-scope-all">
-                                        <?= $this->escape(__('All visible workspaces')) ?>
+                                        <?= $this->escape(__('Sva vidljiva područja')) ?>
                                     </label>
                                 </div>
                                 <?php $workspaceIndex = 0; ?>
@@ -189,13 +194,13 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                                             value="<?= $this->escape($personalWorkspaceFilter) ?>"
                                             data-workspace-search-scope
                                             data-workspace-search-scope-title="<?=
-                                                $this->escape(__('Personal Workspaces'))
+                                                $this->escape(__('Osobna područja'))
                                             ?>"
                                             <?= in_array($personalWorkspaceFilter, $selectedWorkspaceScopes, true)
                                                 ? 'checked' : '' ?>
                                         >
                                         <label class="form-check-label" for="workspace-search-scope-personal">
-                                            <?= $this->escape(__('Personal Workspaces')) ?>
+                                            <?= $this->escape(__('Osobna područja')) ?>
                                         </label>
                                     </div>
                                 <?php endif; ?>
@@ -203,15 +208,15 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                     </div>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3 d-grid">
-                    <button class="btn btn-primary btn-lg" type="submit"><?= $this->escape(__('Search')) ?></button>
+                    <button class="btn btn-primary btn-lg" type="submit"><?= $this->escape(__('Pretraži')) ?></button>
                 </div>
                 <div class="col-12 col-md-4">
-                    <label class="form-label" for="workspace-search-author"><?= $this->escape(__('Author')) ?></label>
+                    <label class="form-label" for="workspace-search-author"><?= $this->escape(__('Autor')) ?></label>
                     <div
                         class="dropdown hph-workspace-search__author-picker"
                         data-workspace-search-author-picker
                         data-endpoint="<?= $this->escape($authorLookupPath) ?>"
-                        data-all-label="<?= $this->escape(__('All authors')) ?>"
+                        data-all-label="<?= $this->escape(__('Svi autori')) ?>"
                     >
                         <input
                             type="hidden"
@@ -229,7 +234,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                             data-author-toggle
                             <?= $authorLookupPath === '' ? 'disabled' : '' ?>
                         ><?= $this->escape(
-                            $authorLookupPath !== '' ? $authorLabel : __('Sign in to select an author'),
+                            $authorLookupPath !== '' ? $authorLabel : __('Prijavite se za odabir autora'),
                         ) ?></button>
                         <?php if ($authorLookupPath !== '') : ?>
                             <div class="dropdown-menu w-100 p-3 shadow">
@@ -237,12 +242,12 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                                     class="form-control mb-2"
                                     type="search"
                                     autocomplete="off"
-                                    placeholder="<?= $this->escape(__('Search authors')) ?>"
-                                    aria-label="<?= $this->escape(__('Search authors')) ?>"
+                                    placeholder="<?= $this->escape(__('Pretraži autore')) ?>"
+                                    aria-label="<?= $this->escape(__('Pretraži autore')) ?>"
                                     data-author-search
                                 >
                                 <div class="small text-body-secondary mb-2" data-author-loading hidden>
-                                    <?= $this->escape(__('Loading authors...')) ?>
+                                    <?= $this->escape(__('Učitavam autore...')) ?>
                                 </div>
                                 <div class="alert alert-danger py-2" data-author-error hidden></div>
                                 <div
@@ -250,7 +255,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                                     data-author-list
                                 ></div>
                                 <div class="small text-body-secondary mt-2" data-author-empty hidden>
-                                    <?= $this->escape(__('No authors match the search.')) ?>
+                                    <?= $this->escape(__('Nema autora koji odgovaraju pretrazi.')) ?>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between gap-2 mt-2">
                                     <span class="small text-body-secondary" data-author-count></span>
@@ -259,7 +264,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                                         type="button"
                                         data-author-more
                                         hidden
-                                    ><?= $this->escape(__('Load more')) ?></button>
+                                    ><?= $this->escape(__('Učitaj još')) ?></button>
                                 </div>
                             </div>
                         <?php endif; ?>
@@ -267,7 +272,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                 </div>
                 <div class="col-6 col-md-4">
                     <label class="form-label" for="workspace-search-from">
-                        <?= $this->escape(__('Published from')) ?>
+                        <?= $this->escape(__('Objavljeno od')) ?>
                     </label>
                     <input
                         class="form-control"
@@ -279,7 +284,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                 </div>
                 <div class="col-6 col-md-4">
                     <label class="form-label" for="workspace-search-to">
-                        <?= $this->escape(__('Published to')) ?>
+                        <?= $this->escape(__('Objavljeno do')) ?>
                     </label>
                     <input
                         class="form-control"
@@ -295,37 +300,40 @@ $workspaceSelectionLabel = $allWorkspacesSelected
 
     <aside class="card shadow-sm mt-3 hph-workspace-search__help" aria-labelledby="workspace-search-help-title">
         <div class="card-body">
-            <h2 class="h5" id="workspace-search-help-title"><?= $this->escape(__('How search works')) ?></h2>
+            <h2 class="h5" id="workspace-search-help-title"><?= $this->escape(__('Kako radi pretraga')) ?></h2>
             <ul class="mb-0">
                 <li>
                     <?= $this->escape(__(
-                        'Select one Workspace without a search term to list all its visible pages.',
+                        'Odaberite jedno područje bez traženog pojma za popis '
+                        . 'svih njegovih stranica koje smijete vidjeti.',
                     )) ?>
                 </li>
                 <li>
                     <?= $this->escape(__(
-                        'Select an author without a search term to list pages they created or last modified.',
+                        'Odaberite autora bez traženog pojma za popis stranica koje je stvorio ili zadnji izmijenio.',
                     )) ?>
                 </li>
                 <li>
                     <?= $this->escape(__(
-                        'Publication dates limit the results by publication date. '
-                        . 'If only the start date is entered, the end date is set to today; '
-                        . 'if only the end date is entered, all earlier dates are included.',
+                        'Datumi ograničavaju rezultate prema datumu objave. Ako unesete samo početni datum, '
+                        . 'završni se postavlja na današnji dan; ako unesete samo završni datum, '
+                        . 'obuhvaćaju se svi raniji datumi.',
                     )) ?>
                 </li>
                 <li>
-                    <?= $this->escape(__('A search term is required when two or more Workspaces are selected.')) ?>
+                    <?= $this->escape(__('Kada odaberete dva ili više područja, traženi pojam je obavezan.')) ?>
                 </li>
                 <li>
                     <?= $this->escape(__(
-                        'You can combine the search term, Workspace, author, and publication dates; '
-                        . 'every selected criterion narrows the results.',
+                        'Traženi pojam, područje, autora i datume objave možete kombinirati; '
+                        . 'svaki odabrani kriterij dodatno sužava rezultate.',
                     )) ?>
                 </li>
                 <li><?= $this->escape(__(
-                    'Without operators, the entered words are searched as one phrase. '
-                    . 'Use + before each required word or quoted phrase, for example: +part +second +"Part 2".',
+                    'Ako samo upišete jednu ili više riječi, pretražuje se cijeli upisani izraz kao jedna fraza. '
+                    . 'Ako rezultat mora sadržavati više zasebnih riječi ili fraza, ispred svake stavite znak +. '
+                    . 'Primjer: +dio +drugi +"Dio 2" pronalazi sadržaj koji sadrži riječ „dio“, riječ „drugi“ '
+                    . 'i frazu „Dio 2“.',
                 )) ?></li>
             </ul>
         </div>
@@ -333,11 +341,11 @@ $workspaceSelectionLabel = $allWorkspacesSelected
 
     <?php if ($searchExecuted) : ?>
         <p class="text-muted mt-4 mb-3">
-            <?= $this->escape(sprintf(__('Results found: %d'), $total)) ?>
+            <?= $this->escape(sprintf(__('Pronađeno rezultata: %d'), $total)) ?>
         </p>
         <?php if ($items === []) : ?>
             <div class="alert alert-info" role="status">
-                <?= $this->escape(__('No results match the selected filters.')) ?>
+                <?= $this->escape(__('Nema rezultata za zadane filtre.')) ?>
             </div>
         <?php endif; ?>
 
@@ -348,11 +356,11 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                     <tr>
                         <?php foreach (
                         [
-                            'title' => __('Page name'),
-                            'author' => __('Author'),
-                            'published_at' => __('Published'),
-                            'modified_at' => __('Last modified'),
-                            'modified_by' => __('Modified by'),
+                            'title' => __('Ime stranice'),
+                            'author' => __('Autor'),
+                            'published_at' => __('Objavljeno'),
+                            'modified_at' => __('Zadnja izmjena'),
+                            'modified_by' => __('Izmijenio'),
                         ] as $column => $label
 ) : ?>
                             <th scope="col">
@@ -366,7 +374,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                     <tbody>
                     <?php foreach ($items as $item) : ?>
                         <tr>
-                            <td data-label="<?= $this->escape(__('Page name')) ?>">
+                            <td data-label="<?= $this->escape(__('Ime stranice')) ?>">
                                 <a href="<?= $this->escape(WorkspaceValue::string($item['url'] ?? '#')) ?>">
                                     <?= $this->escape(WorkspaceValue::string($item['title'] ?? '')) ?>
                                 </a>
@@ -374,16 +382,16 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                                     <?= $this->escape(WorkspaceValue::string($item['workspace_name'] ?? '')) ?>
                                 </small>
                             </td>
-                            <td data-label="<?= $this->escape(__('Author')) ?>">
+                            <td data-label="<?= $this->escape(__('Autor')) ?>">
                                 <?= $this->escape(WorkspaceValue::string($item['author_name'] ?? '')) ?>
                             </td>
-                            <td data-label="<?= $this->escape(__('Published')) ?>">
+                            <td data-label="<?= $this->escape(__('Objavljeno')) ?>">
                                 <?= $this->escape($displayDate($item['published_at'] ?? '')) ?>
                             </td>
-                            <td data-label="<?= $this->escape(__('Last modified')) ?>">
+                            <td data-label="<?= $this->escape(__('Zadnja izmjena')) ?>">
                                 <?= $this->escape($displayDate($item['modified_at'] ?? '')) ?>
                             </td>
-                            <td data-label="<?= $this->escape(__('Modified by')) ?>">
+                            <td data-label="<?= $this->escape(__('Izmijenio')) ?>">
                                 <?= $this->escape(WorkspaceValue::string($item['modified_by_name'] ?? '')) ?>
                             </td>
                         </tr>
@@ -403,7 +411,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                             </h2>
                             <p class="small text-muted mb-2">
                                 <?php if (WorkspaceValue::string($item['result_type'] ?? 'page') === 'workspace') : ?>
-                                    <span class="badge text-bg-secondary"><?= $this->escape(__('Workspace')) ?></span>
+                                    <span class="badge text-bg-secondary"><?= $this->escape(__('Područje')) ?></span>
                                 <?php else : ?>
                                     <?= $this->escape(WorkspaceValue::string($item['workspace_name'] ?? '')) ?>
                                     <?php if (WorkspaceValue::string($item['author_name'] ?? '') !== '') : ?>
@@ -424,14 +432,14 @@ $workspaceSelectionLabel = $allWorkspacesSelected
         <?php endif; ?>
 
         <?php if ($pages > 1) : ?>
-            <nav class="mt-4" aria-label="<?= $this->escape(__('Result pages')) ?>">
+            <nav class="mt-4" aria-label="<?= $this->escape(__('Stranice rezultata')) ?>">
                 <ul class="pagination flex-wrap">
                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
                         <?php $params = [...$paginationQuery, 'page' => max(1, $page - 1)]; ?>
                         <a
                             class="page-link"
                             href="<?= $this->escape($searchPath . '?' . http_build_query($params)) ?>"
-                            aria-label="<?= $this->escape(__('Previous page')) ?>"
+                            aria-label="<?= $this->escape(__('Prethodna stranica')) ?>"
                         >&lsaquo;</a>
                     </li>
                     <?php $previousNumber = 0; ?>
@@ -456,7 +464,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                         <a
                             class="page-link"
                             href="<?= $this->escape($searchPath . '?' . http_build_query($params)) ?>"
-                            aria-label="<?= $this->escape(__('Next page')) ?>"
+                            aria-label="<?= $this->escape(__('Sljedeća stranica')) ?>"
                         >&rsaquo;</a>
                     </li>
                 </ul>
@@ -464,15 +472,15 @@ $workspaceSelectionLabel = $allWorkspacesSelected
         <?php endif; ?>
     <?php elseif ($queryTooShort) : ?>
         <p class="text-muted mt-4">
-            <?= $this->escape(sprintf(__('Enter at least %d characters.'), $minimumQueryLength)) ?>
+            <?= $this->escape(sprintf(__('Upišite barem %d znaka.'), $minimumQueryLength)) ?>
         </p>
     <?php elseif ($queryRequiredForMultipleWorkspaces) : ?>
         <p class="text-muted mt-4">
-            <?= $this->escape(__('Enter a search term when two or more Workspaces are selected.')) ?>
+            <?= $this->escape(__('Upišite traženi pojam kada su odabrana dva ili više područja.')) ?>
         </p>
     <?php else : ?>
         <p class="text-muted mt-4">
-            <?= $this->escape(__('Enter a search term or select a Workspace, author, or publication date.')) ?>
+            <?= $this->escape(__('Upišite traženi pojam ili odaberite područje, autora ili datum objave.')) ?>
         </p>
     <?php endif; ?>
 </section>
@@ -482,8 +490,8 @@ $workspaceSelectionLabel = $allWorkspacesSelected
             var all = picker.querySelector('[data-workspace-search-scope-all]');
             var scopes = Array.from(picker.querySelectorAll('[data-workspace-search-scope]'));
             var label = picker.querySelector('[data-workspace-search-scope-label]');
-            var allLabel = <?= json_encode(__('All visible workspaces'), JSON_UNESCAPED_UNICODE) ?>;
-            var selectedLabel = <?= json_encode(__('Selected Workspaces: %d'), JSON_UNESCAPED_UNICODE) ?>;
+            var allLabel = <?= json_encode(__('Sva vidljiva područja'), JSON_UNESCAPED_UNICODE) ?>;
+            var selectedLabel = <?= json_encode(__('Odabrana područja: %d'), JSON_UNESCAPED_UNICODE) ?>;
 
             function synchronize(changed) {
                 if (changed === all && all?.checked) {
@@ -557,7 +565,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                 var resultCount = Math.max(0, list.children.length - 1);
                 empty?.toggleAttribute('hidden', resultCount > 0);
                 if (count) {
-                    count.textContent = <?= json_encode(__('Shown: %d'), JSON_UNESCAPED_UNICODE) ?>
+                    count.textContent = <?= json_encode(__('Prikazano: %d'), JSON_UNESCAPED_UNICODE) ?>
                         .replace('%d', String(resultCount));
                 }
             }
@@ -581,7 +589,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                     }
                     if (!response.ok || payload?.ok !== true) {
                         throw new Error(String(payload?.error || <?= json_encode(
-                            __('The author list could not be loaded.'),
+                            __('Popis autora trenutačno nije moguće dohvatiti.'),
                         ) ?>));
                     }
                     render(payload.items, append);
@@ -599,7 +607,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                     if (errorBox) {
                         errorBox.textContent = error instanceof Error
                             ? error.message
-                            : <?= json_encode(__('The author list could not be loaded.')) ?>;
+                            : <?= json_encode(__('Popis autora trenutačno nije moguće dohvatiti.')) ?>;
                         errorBox.removeAttribute('hidden');
                     }
                 } finally {
@@ -660,11 +668,11 @@ $workspaceSelectionLabel = $allWorkspacesSelected
             var from = form.querySelector('[name="from"]');
             var to = form.querySelector('[name="to"]');
             var missingFilterMessage = <?= json_encode(
-                __('Enter a search term or select a Workspace, author, or publication date.'),
+                __('Upišite traženi pojam ili odaberite područje, autora ili datum objave.'),
                 JSON_UNESCAPED_UNICODE,
             ) ?>;
             var multipleWorkspacesMessage = <?= json_encode(
-                __('Enter a search term when two or more Workspaces are selected.'),
+                __('Upišite traženi pojam kada su odabrana dva ili više područja.'),
                 JSON_UNESCAPED_UNICODE,
             ) ?>;
             form.addEventListener('submit', function (event) {

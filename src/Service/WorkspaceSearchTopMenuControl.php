@@ -37,7 +37,7 @@ final readonly class WorkspaceSearchTopMenuControl implements TopMenuControlProv
             $action = rtrim($this->urls->getBasePath(), '/') . '/search';
         }
 
-        $label = $this->escape($this->translator->trans('Search workspaces'));
+        $label = $this->escape($this->translator->trans('Pretraži područja'));
 
         return '<li class="nav-item hph-workspace-search-control d-flex align-items-center">'
         . '<form class="d-flex align-items-center" role="search" method="get" action="'
