@@ -29,7 +29,7 @@ final class WorkspaceSearchSchemaTest extends TestCase
                 ],
             ],
         ]), $helper);
-        $migration = require dirname(__DIR__) . '/resources/migrations/initial_workspace_search_schema.php';
+        $migration = require __DIR__ . '/../resources/migrations/initial_workspace_search_schema.php';
 
         $this->assertInstanceOf(ReversibleMigrationInterface::class, $migration);
         $migration->up($database);

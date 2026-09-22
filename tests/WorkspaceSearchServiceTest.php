@@ -60,13 +60,12 @@ final class WorkspaceSearchServiceTest extends TestCase
         ]);
         $this->database = new Database($config, $helper);
         $this->runMigration(
-            dirname(__DIR__) . '/vendor/aaieduhr/heartphrame-module-auth/resources/migrations/initial_auth_schema.php',
+            __DIR__ . '/../vendor/aaieduhr/heartphrame-module-auth/resources/migrations/initial_auth_schema.php',
         );
         $this->runMigration(
-            dirname(__DIR__)
-            . '/vendor/aaieduhr/simbioza-module-workspace/resources/migrations/initial_workspace_schema.php',
+            __DIR__ . '/../vendor/aaieduhr/simbioza-module-workspace/resources/migrations/initial_workspace_schema.php',
         );
-        $this->runMigration(dirname(__DIR__) . '/resources/migrations/initial_workspace_search_schema.php');
+        $this->runMigration(__DIR__ . '/../resources/migrations/initial_workspace_search_schema.php');
         $names = [
             1 => ['Ivo', 'Alfa'],
             2 => ['Bruno', 'Beta'],
@@ -103,7 +102,7 @@ final class WorkspaceSearchServiceTest extends TestCase
         $workflow = new WorkspaceWorkflowService($this->repository);
         $workspaceConfig = new WorkspaceConfig(
             $config,
-            dirname(__DIR__) . '/vendor/aaieduhr/simbioza-module-workspace',
+            __DIR__ . '/../vendor/aaieduhr/simbioza-module-workspace',
         );
         $access = new WorkspaceAccessService($this->repository, $this->authnHandler(), $workspaceConfig, $workflow);
         $provider = new class ($this->versions) implements EditorPublishedVersionProviderInterface {
