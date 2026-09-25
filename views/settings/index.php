@@ -44,7 +44,11 @@ if (isset($menuRenderer) && is_object($menuRenderer)) {
                     <?= is_string($csrfInput) ? $csrfInput : '' ?>
                     <div class="row g-3 align-items-end">
                         <div class="col-12 col-lg-8">
-                            <label class="form-label">
+                            <?php
+                            // HR: Naziv opsega i odabir imaju trajnu vezu.
+                            // EN: Scope label and selection keep a stable association.
+                            ?>
+                            <label class="form-label" id="search-reindex-label" for="search-reindex-toggle">
                                 <?= $this->escape(__('Opseg reindeksa')) ?>
                             </label>
                             <div
@@ -61,6 +65,8 @@ if (isset($menuRenderer) && is_object($menuRenderer)) {
                             >
                                 <input type="hidden" name="workspace_id" value="0" data-workspace-lookup-value>
                                 <button
+                                    id="search-reindex-toggle"
+                                    aria-labelledby="search-reindex-label search-reindex-toggle"
                                     class="form-select text-start"
                                     type="button"
                                     data-bs-toggle="dropdown"
@@ -76,17 +82,21 @@ if (isset($menuRenderer) && is_object($menuRenderer)) {
                                         type="search"
                                         autocomplete="off"
                                         placeholder="<?= $this->escape(__('Pretraži područja')) ?>"
+                                        aria-label="<?= $this->escape(__('Pretraži područja')) ?>"
                                         data-workspace-lookup-search
                                     >
-                                    <div class="small text-body-secondary mb-2" data-workspace-lookup-loading hidden>
+                                    <div class="small text-body-secondary mb-2" role="status"
+                                        data-workspace-lookup-loading hidden>
                                         <?= $this->escape(__('Učitavanje...')) ?>
                                     </div>
-                                    <div class="alert alert-danger py-2" data-workspace-lookup-error hidden></div>
+                                    <div class="alert alert-danger py-2" role="alert"
+                                        data-workspace-lookup-error hidden></div>
                                     <div
                                         class="list-group list-group-flush workspace-lookup-list"
                                         data-workspace-lookup-list
                                     ></div>
-                                    <div class="small text-body-secondary mt-2" data-workspace-lookup-empty hidden>
+                                    <div class="small text-body-secondary mt-2" role="status"
+                                        data-workspace-lookup-empty hidden>
                                         <?= $this->escape(__('Nema rezultata.')) ?>
                                     </div>
                                     <button

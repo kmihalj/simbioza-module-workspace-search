@@ -10,6 +10,18 @@ use PHPUnit\Framework\TestCase;
 #[CoversNothing]
 final class WorkspaceSearchViewTest extends TestCase
 {
+    /** HR: Opseg obnove i njegovo pretraživanje imaju povezana imena. EN: Rebuild scope and its search have associated names. */
+    public function testReindexPickerHasNamedControlsAndLiveFeedback(): void
+    {
+        $view = (string)file_get_contents(__DIR__ . '/../views/settings/index.php');
+        $this->assertStringContainsString('for="search-reindex-toggle"', $view);
+        $this->assertSame(1, substr_count($view, 'id="search-reindex-toggle"'));
+        $this->assertStringContainsString('aria-labelledby="search-reindex-label search-reindex-toggle"', $view);
+        $this->assertMatchesRegularExpression('/role="status"\s+data-workspace-lookup-loading/', $view);
+        $this->assertMatchesRegularExpression('/role="alert"\s+data-workspace-lookup-error/', $view);
+        $this->assertStringContainsString('aria-label="<?= $this->escape(__(\'Pretraži područja\')) ?>"', $view);
+    }
+
     /** HR: Veliki rezultat ne smije iscrtati poveznicu za svaku stranicu. EN: A large result must not render one link for every page. */
     public function testPaginationUsesBoundedWindowAndPreviousNextLinks(): void
     {
