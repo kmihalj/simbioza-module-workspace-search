@@ -15,14 +15,16 @@ use RuntimeException;
 use Throwable;
 
 /**
- * HR: Izlaže ACL-svjesnu pretragu područja vlasniku API ključa.
  * EN: Exposes ACL-aware Workspace search to the API-key owner.
+ *
+ * HR: Izlaže ACL-svjesnu pretragu područja vlasniku API ključa.
  */
 final readonly class WorkspaceSearchResourceController
 {
     /**
-     * HR: Prima zajedničku API tvornicu, servis pretrage i lokalizacijsku konfiguraciju.
      * EN: Receives the shared API response factory, search service, and locale configuration.
+     *
+     * HR: Prima zajedničku API tvornicu, servis pretrage i lokalizacijsku konfiguraciju.
      */
     public function __construct(
         private ApiResponseFactory $responses,
@@ -32,8 +34,9 @@ final readonly class WorkspaceSearchResourceController
     }
 
     /**
-     * HR: Pretražuje samo stranice koje stvarni korisnik API ključa smije vidjeti.
      * EN: Searches only pages visible to the API key's actual user.
+     *
+     * HR: Pretražuje samo stranice koje stvarni korisnik API ključa smije vidjeti.
      */
     public function search(ServerRequestInterface $request): ResponseInterface
     {
@@ -83,8 +86,9 @@ final readonly class WorkspaceSearchResourceController
     }
 
     /**
-     * HR: Vraća identitet koji je postavio zajednički API middleware.
      * EN: Returns the identity attached by the shared API middleware.
+     *
+     * HR: Vraća identitet koji je postavio zajednički API middleware.
      */
     private function identity(ServerRequestInterface $request): AuthApiIdentity
     {
@@ -97,8 +101,9 @@ final readonly class WorkspaceSearchResourceController
     }
 
     /**
-     * HR: Zadržava samo tekstualne query ključeve.
      * EN: Keeps only string query keys.
+     *
+     * HR: Zadržava samo tekstualne query ključeve.
      *
      * @param array<mixed,mixed> $values
      * @return array<string,mixed>
@@ -116,8 +121,9 @@ final readonly class WorkspaceSearchResourceController
     }
 
     /**
-     * HR: Čita zadani jezik aplikacije uz hrvatski sigurni fallback.
      * EN: Reads the application default language with a safe Croatian fallback.
+     *
+     * HR: Čita zadani jezik aplikacije uz hrvatski sigurni fallback.
      */
     private function defaultLanguage(): string
     {

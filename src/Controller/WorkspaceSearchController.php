@@ -20,15 +20,17 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * HR: HTTP sučelje javne, ali uvijek ACL-svjesne Workspace pretrage.
  * EN: HTTP interface for public yet always ACL-aware Workspace search.
+ *
+ * HR: HTTP sučelje javne, ali uvijek ACL-svjesne Workspace pretrage.
  */
 final readonly class WorkspaceSearchController
 {
     /**
- * HR: Prima renderiranje, ACL pretragu, lokalizaciju i generator putanja.
- * EN: Receives rendering, ACL search, localization, and route generation services.
- */
+     * EN: Receives rendering, ACL search, localization, and route generation services.
+     *
+     * HR: Prima renderiranje, ACL pretragu, lokalizaciju i generator putanja.
+     */
     public function __construct(
         private WorkspaceSearchModuleViewRenderer $views,
         private ResponseFactory $responses,
@@ -45,8 +47,9 @@ final readonly class WorkspaceSearchController
     }
 
     /**
-     * HR: Renderira tematsku stranicu pretrage za gosta ili trenutačnog korisnika.
      * EN: Renders the themed search page for a guest or the current user.
+     *
+     * HR: Renderira tematsku stranicu pretrage za gosta ili trenutačnog korisnika.
      */
     public function index(ServerRequestInterface $request): ResponseInterface
     {
@@ -100,7 +103,11 @@ final readonly class WorkspaceSearchController
         ]);
     }
 
-    /** HR: Vraća jednu ograničenu stranicu svih autora za udaljeni birač. EN: Returns one bounded page of all authors for the remote picker. */
+    /**
+     * EN: Returns one bounded page of all authors for the remote picker.
+     *
+     * HR: Vraća jednu ograničenu stranicu svih autora za udaljeni birač.
+     */
     public function authors(ServerRequestInterface $request): ResponseInterface
     {
         if (!is_array($this->access->currentUser())) {
@@ -119,8 +126,9 @@ final readonly class WorkspaceSearchController
     }
 
     /**
-     * HR: Vraća ACL-filtrirane prijedloge za progresivno poboljšanje tražilice.
      * EN: Returns ACL-filtered suggestions for progressive search enhancement.
+     *
+     * HR: Vraća ACL-filtrirane prijedloge za progresivno poboljšanje tražilice.
      */
     public function suggest(ServerRequestInterface $request): ResponseInterface
     {
@@ -141,8 +149,9 @@ final readonly class WorkspaceSearchController
     }
 
     /**
-     * HR: Poslužuje mali tematski CSS resurs modula uz kratki javni cache.
      * EN: Serves the module's small theme-aware CSS asset with a short public cache.
+     *
+     * HR: Poslužuje mali tematski CSS resurs modula uz kratki javni cache.
      */
     public function styles(): ResponseInterface
     {
@@ -155,7 +164,11 @@ final readonly class WorkspaceSearchController
         ]);
     }
 
-    /** HR: Kvar opcionalnog audit slušatelja ne smije prekinuti pretragu. EN: An optional audit-listener failure must not interrupt search. */
+    /**
+     * EN: An optional audit-listener failure must not interrupt search.
+     *
+     * HR: Kvar opcionalnog audit slušatelja ne smije prekinuti pretragu.
+     */
     private function dispatch(WorkspaceSearchPerformed $event): void
     {
         if (!$this->events instanceof EventDispatcherInterface) {
@@ -174,8 +187,9 @@ final readonly class WorkspaceSearchController
     }
 
     /**
-     * HR: Validira locale i vraća zadani jezik sitea za neispravnu vrijednost.
      * EN: Validates the locale and returns the site default for an invalid value.
+     *
+     * HR: Validira locale i vraća zadani jezik sitea za neispravnu vrijednost.
      */
     private function language(mixed $value): string
     {
@@ -187,8 +201,10 @@ final readonly class WorkspaceSearchController
     }
 
     /**
-     * HR: Zadržava samo tekstualne ključeve HTTP query mape.
      * EN: Keeps only string keys from the HTTP query map.
+     *
+     * HR: Zadržava samo tekstualne ključeve HTTP query mape.
+     *
      * @param array<mixed> $values
      * @return array<string, mixed>
      */
@@ -205,8 +221,9 @@ final readonly class WorkspaceSearchController
     }
 
     /**
-     * HR: Normalizira ulaznu vrijednost u ograničeni string.
      * EN: Normalizes an input value into a bounded string.
+     *
+     * HR: Normalizira ulaznu vrijednost u ograničeni string.
      */
     private function string(mixed $value): string
     {
@@ -214,8 +231,9 @@ final readonly class WorkspaceSearchController
     }
 
     /**
-     * HR: Prikazuje odabranog autora istim redoslijedom Prezime Ime kao lookup.
      * EN: Displays the selected author in the same Surname Given-name order as the lookup.
+     *
+     * HR: Prikazuje odabranog autora istim redoslijedom Prezime Ime kao lookup.
      *
      * @param array<string,mixed> $user
      */
@@ -237,8 +255,10 @@ final readonly class WorkspaceSearchController
     }
 
     /**
-     * HR: Gradi baznu query mapu za poveznice stranica bez oslanjanja viewa na globale.
      * EN: Builds the base query map for pagination links without view-level globals.
+     *
+     * HR: Gradi baznu query mapu za poveznice stranica bez oslanjanja viewa na globale.
+     *
      * @param array<mixed,mixed> $query
      * @return array<string,scalar|list<scalar>>
      */
@@ -263,8 +283,9 @@ final readonly class WorkspaceSearchController
     }
 
     /**
-     * HR: Generira putanju s baznim direktorijem aplikacije i sigurnim fallbackom.
      * EN: Generates a path with the application base directory and a safe fallback.
+     *
+     * HR: Generira putanju s baznim direktorijem aplikacije i sigurnim fallbackom.
      */
     private function path(string $route, string $fallback): string
     {

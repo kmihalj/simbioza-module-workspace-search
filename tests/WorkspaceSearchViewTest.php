@@ -10,7 +10,11 @@ use PHPUnit\Framework\TestCase;
 #[CoversNothing]
 final class WorkspaceSearchViewTest extends TestCase
 {
-    /** HR: Opseg obnove i njegovo pretraživanje imaju povezana imena. EN: Rebuild scope and its search have associated names. */
+    /**
+     * EN: Rebuild scope and its search have associated names.
+     *
+     * HR: Opseg obnove i njegovo pretraživanje imaju povezana imena.
+     */
     public function testReindexPickerHasNamedControlsAndLiveFeedback(): void
     {
         $view = (string)file_get_contents(__DIR__ . '/../views/settings/index.php');
@@ -22,7 +26,11 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString('aria-label="<?= $this->escape(__(\'Pretraži područja\')) ?>"', $view);
     }
 
-    /** HR: Veliki rezultat ne smije iscrtati poveznicu za svaku stranicu. EN: A large result must not render one link for every page. */
+    /**
+     * EN: A large result must not render one link for every page.
+     *
+     * HR: Veliki rezultat ne smije iscrtati poveznicu za svaku stranicu.
+     */
     public function testPaginationUsesBoundedWindowAndPreviousNextLinks(): void
     {
         $view = file_get_contents(__DIR__ . '/../views/search/index.php');
@@ -35,7 +43,11 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringNotContainsString('for ($number = 1; $number <= $pages;', $view);
     }
 
-    /** HR: Rezultat područja ima jasnu vrstu i ne prikazuje prazne metapodatke stranice. EN: A Workspace result has a clear type and omits empty page metadata. */
+    /**
+     * EN: A Workspace result has a clear type and omits empty page metadata.
+     *
+     * HR: Rezultat područja ima jasnu vrstu i ne prikazuje prazne metapodatke stranice.
+     */
     public function testWorkspaceResultHasDedicatedPresentation(): void
     {
         $view = file_get_contents(__DIR__ . '/../views/search/index.php');
@@ -46,7 +58,11 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString("__('Područje')", $view);
     }
 
-    /** HR: Filter ne ispisuje stotine osobnih područja nego jednu skupnu mogućnost. EN: The filter presents one aggregate choice instead of hundreds of personal Workspaces. */
+    /**
+     * EN: The filter presents one aggregate choice instead of hundreds of personal Workspaces.
+     *
+     * HR: Filter ne ispisuje stotine osobnih područja nego jednu skupnu mogućnost.
+     */
     public function testWorkspaceFilterAggregatesPersonalWorkspaces(): void
     {
         $view = file_get_contents(__DIR__ . '/../views/search/index.php');
@@ -57,7 +73,11 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString("['is_personal_workspace']", $view);
     }
 
-    /** HR: Ugrađena pretraga unaprijed označava područja u običnom promjenjivom odabiru. EN: Embedded search preselects Workspaces in the regular editable picker. */
+    /**
+     * EN: Embedded search preselects Workspaces in the regular editable picker.
+     *
+     * HR: Ugrađena pretraga unaprijed označava područja u običnom promjenjivom odabiru.
+     */
     public function testEmbeddedSearchKeepsWorkspaceScopesVisibleAndEditable(): void
     {
         $view = file_get_contents(__DIR__ . '/../views/search/index.php');
@@ -70,7 +90,11 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringNotContainsString('aria-readonly="true"', $view);
     }
 
-    /** HR: Globalna pretraga koristi višestruki odabir s jednom opcijom za sva područja. EN: Global search uses a multi-picker with one all-Workspaces option. */
+    /**
+     * EN: Global search uses a multi-picker with one all-Workspaces option.
+     *
+     * HR: Globalna pretraga koristi višestruki odabir s jednom opcijom za sva područja.
+     */
     public function testGlobalSearchUsesCheckboxWorkspacePicker(): void
     {
         $view = file_get_contents(__DIR__ . '/../views/search/index.php');
@@ -83,7 +107,11 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString('ALL_WORKSPACES_FILTER', $view);
     }
 
-    /** HR: Forma objašnjava zadanu frazu i napredne operatore. EN: The form explains default phrase and advanced operator semantics. */
+    /**
+     * EN: The form explains default phrase and advanced operator semantics.
+     *
+     * HR: Forma objašnjava zadanu frazu i napredne operatore.
+     */
     public function testSearchFormDocumentsPhraseSyntax(): void
     {
         $view = file_get_contents(__DIR__ . '/../views/search/index.php');
@@ -97,7 +125,11 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString('+dio +drugi +"Dio 2"', $view);
     }
 
-    /** HR: Slanje forme zadržava odabrani jezik pretrage. EN: Submitting the form preserves the selected search language. */
+    /**
+     * EN: Submitting the form preserves the selected search language.
+     *
+     * HR: Slanje forme zadržava odabrani jezik pretrage.
+     */
     public function testSearchFormPreservesSelectedLanguage(): void
     {
         $view = file_get_contents(__DIR__ . '/../views/search/index.php');
@@ -107,7 +139,11 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString("\$result['language']", $view);
     }
 
-    /** HR: Autor koristi udaljeni birač s ograničenim stranicama i dodatnim učitavanjem. EN: Author uses a remote paged picker with load-more support. */
+    /**
+     * EN: Author uses a remote paged picker with load-more support.
+     *
+     * HR: Autor koristi udaljeni birač s ograničenim stranicama i dodatnim učitavanjem.
+     */
     public function testAuthorUsesRemotePagedPicker(): void
     {
         $view = file_get_contents(__DIR__ . '/../views/search/index.php');
@@ -119,7 +155,11 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString("__('Učitaj još')", $view);
     }
 
-    /** HR: Prazan pojam prikazuje sortirljivu tablicu sa svim traženim kolonama. EN: An empty term renders the sortable table with every requested column. */
+    /**
+     * EN: An empty term renders the sortable table with every requested column.
+     *
+     * HR: Prazan pojam prikazuje sortirljivu tablicu sa svim traženim kolonama.
+     */
     public function testBrowseModeUsesSortablePageTable(): void
     {
         $view = file_get_contents(__DIR__ . '/../views/search/index.php');

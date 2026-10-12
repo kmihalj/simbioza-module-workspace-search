@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace AaiEduHr\SimbiozaModuleWorkspaceSearch;
 
 /**
- * HR: Stabilni tehnički identifikatori Workspace Search modula.
  * EN: Stable technical identifiers of the Workspace Search module.
+ *
+ * HR: Stabilni tehnički identifikatori Workspace Search modula.
  */
 final class ModuleWorkspaceSearch
 {
@@ -15,9 +16,10 @@ final class ModuleWorkspaceSearch
     public const TABLE_INDEX = 'workspace_search_index';
 
     /**
- * HR: Inicijalizira objekt i njegove ovisnosti.
- * EN: Initializes the object and its dependencies.
- */
+     * EN: Initializes the object and its dependencies.
+     *
+     * HR: Inicijalizira objekt i njegove ovisnosti.
+     */
     private function __construct()
     {
     }

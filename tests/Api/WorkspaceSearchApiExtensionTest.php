@@ -11,12 +11,20 @@ use HeartPhrame\Routing\Routes;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-/** HR: Provjerava Workspace Search API oglas. EN: Verifies the Workspace Search API declaration. */
+/**
+ * EN: Verifies the Workspace Search API declaration.
+ *
+ * HR: Provjerava Workspace Search API oglas.
+ */
 #[CoversClass(WorkspaceSearchApiExtension::class)]
 #[CoversClass(ApiRouteRegistry::class)]
 final class WorkspaceSearchApiExtensionTest extends TestCase
 {
-    /** HR: Registrira ACL-svjesnu rutu pretrage sa zaštitom. EN: Registers the protected ACL-aware search route. */
+    /**
+     * EN: Registers the protected ACL-aware search route.
+     *
+     * HR: Registrira ACL-svjesnu rutu pretrage sa zaštitom.
+     */
     public function testRegistersOwnedRoute(): void
     {
         $routes = new Routes();

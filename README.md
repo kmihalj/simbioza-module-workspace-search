@@ -1,6 +1,8 @@
 # Simbioza Workspace Search module
 
-[Hrvatska verzija](README_hr.md)
+> Release 0.3.0 preparation: the tagged installation commands below apply after coordinated publication of the application and modules. Development verification uses local packages; older releases cannot replace this configuration and schema.
+
+[Croatian version](README_hr.md)
 
 Workspace Search provides global search across published Workspace pages. It is
 deliberately not a generic site-search package: every result depends on the
@@ -12,12 +14,12 @@ integration.
 Required, in enable order:
 
 1. `aaieduhr/heartphrame-framework` (`^0.0.25`)
-2. `aaieduhr/heartphrame-module-orm` (`^0.1.0`)
-3. `aaieduhr/heartphrame-module-menu` (`^0.1.0`)
-4. `aaieduhr/heartphrame-module-auth` (`^0.1.0`)
-5. `aaieduhr/heartphrame-module-editor-html` (`^0.1.0`)
-6. `aaieduhr/simbioza-module-workspace` (`^0.1.0`)
-7. `aaieduhr/simbioza-module-workspace-search` (`^0.1.0`)
+2. `aaieduhr/heartphrame-module-orm` (`^0.3.0`)
+3. `aaieduhr/heartphrame-module-menu` (`^0.3.0`)
+4. `aaieduhr/heartphrame-module-auth` (`^0.3.0`)
+5. `aaieduhr/heartphrame-module-editor-html` (`^0.3.0`)
+6. `aaieduhr/simbioza-module-workspace` (`^0.3.0`)
+7. `aaieduhr/simbioza-module-workspace-search` (`^0.3.0`)
 
 Optional integration:
 
@@ -30,7 +32,7 @@ dependencies rather than optional suggestions.
 ## Installation
 
 ```bash
-composer require aaieduhr/simbioza-module-workspace-search:^0.1.6
+composer require aaieduhr/simbioza-module-workspace-search:^0.3.0
 vendor/bin/hph workspace-search:install-migration
 vendor/bin/hph orm-migrate:up
 vendor/bin/hph workspace-search:rebuild
@@ -101,7 +103,12 @@ vendor/bin/hph workspace-search:rebuild
 vendor/bin/hph workspace-search rebuild --workspace=42
 ```
 
-Application overrides belong in `config/workspace-search.php`:
+Installation overrides belong in
+`HPH_CONFIG_PATH/workspace-search/workspace-search.php`. With no environment
+override, use `<application>/config/workspace-search/workspace-search.php`.
+The framework loads this tree before module services start; later
+`HPH_CONFIG_OVERRIDE_PATHS` layers override only the keys they provide.
+An empty higher-layer array resets this policy to package defaults.
 
 ```php
 <?php
@@ -126,4 +133,4 @@ rebuilds the index.
 - [Backup integration](docs/backup_en.md)
 
 The Framework uses `^0.0.25` and all internal modules use the compatible
-`^0.1.0` release line. Do not pin one internal module to an older commit.
+`^0.3.0` release line. Do not pin one internal module to an older commit.

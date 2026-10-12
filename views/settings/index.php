@@ -45,8 +45,9 @@ if (isset($menuRenderer) && is_object($menuRenderer)) {
                     <div class="row g-3 align-items-end">
                         <div class="col-12 col-lg-8">
                             <?php
-                            // HR: Naziv opsega i odabir imaju trajnu vezu.
                             // EN: Scope label and selection keep a stable association.
+                            //
+                            // HR: Naziv opsega i odabir imaju trajnu vezu.
                             ?>
                             <label class="form-label" id="search-reindex-label" for="search-reindex-toggle">
                                 <?= $this->escape(__('Opseg reindeksa')) ?>

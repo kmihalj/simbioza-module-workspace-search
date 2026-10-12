@@ -1,6 +1,8 @@
 # Simbioza Workspace Search modul
 
-[English version](README.md)
+> Priprema izdanja 0.3.0: navedene naredbe za označena izdanja vrijede nakon koordinirane objave aplikacije i modula. Razvojna provjera koristi lokalne pakete; starija izdanja nisu zamjena za ovu konfiguraciju i shemu.
+
+[Engleska verzija](README.md)
 
 Workspace Search daje globalnu pretragu objavljenih Workspace stranica. To
 namjerno nije generički paket za pretragu cijelog sitea: svaki rezultat ovisi o
@@ -12,12 +14,12 @@ integraciji.
 Obavezno, redoslijedom uključivanja:
 
 1. `aaieduhr/heartphrame-framework` (`^0.0.25`)
-2. `aaieduhr/heartphrame-module-orm` (`^0.1.0`)
-3. `aaieduhr/heartphrame-module-menu` (`^0.1.0`)
-4. `aaieduhr/heartphrame-module-auth` (`^0.1.0`)
-5. `aaieduhr/heartphrame-module-editor-html` (`^0.1.0`)
-6. `aaieduhr/simbioza-module-workspace` (`^0.1.0`)
-7. `aaieduhr/simbioza-module-workspace-search` (`^0.1.0`)
+2. `aaieduhr/heartphrame-module-orm` (`^0.3.0`)
+3. `aaieduhr/heartphrame-module-menu` (`^0.3.0`)
+4. `aaieduhr/heartphrame-module-auth` (`^0.3.0`)
+5. `aaieduhr/heartphrame-module-editor-html` (`^0.3.0`)
+6. `aaieduhr/simbioza-module-workspace` (`^0.3.0`)
+7. `aaieduhr/simbioza-module-workspace-search` (`^0.3.0`)
 
 Opcionalna integracija:
 
@@ -30,7 +32,7 @@ ovisnosti, a ne opcionalni prijedlozi.
 ## Instalacija
 
 ```bash
-composer require aaieduhr/simbioza-module-workspace-search:^0.1.6
+composer require aaieduhr/simbioza-module-workspace-search:^0.3.0
 vendor/bin/hph workspace-search:install-migration
 vendor/bin/hph orm-migrate:up
 vendor/bin/hph workspace-search:rebuild
@@ -99,7 +101,12 @@ vendor/bin/hph workspace-search:rebuild
 vendor/bin/hph workspace-search rebuild --workspace=42
 ```
 
-Aplikacijski override pripada u `config/workspace-search.php`:
+Instalacijske postavke nalaze se u
+`HPH_CONFIG_PATH/workspace-search/workspace-search.php`. Bez varijable okruženja
+koristi se `<aplikacija>/config/workspace-search/workspace-search.php`.
+Framework učitava ovo stablo prije pokretanja servisa modula; kasniji
+`HPH_CONFIG_OVERRIDE_PATHS` slojevi nadjačavaju samo ključeve koje navode.
+Prazno polje u višem sloju vraća ovu politiku na paketne zadane vrijednosti.
 
 ```php
 <?php
@@ -124,4 +131,4 @@ obnavlja indeks.
 - [Integracija backupa](docs/backup_hr.md)
 
 Framework koristi `^0.0.25`, a svi interni moduli kompatibilnu liniju izdanja
-`^0.1.0`. U ovom paketu nemojte vezati jedan interni modul uz stariji commit.
+`^0.3.0`. U ovom paketu nemojte vezati jedan interni modul uz stariji commit.

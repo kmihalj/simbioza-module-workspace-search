@@ -20,14 +20,16 @@ use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
 /**
- * HR: Administratorsko web sučelje za provjeru i ručnu obnovu indeksa.
  * EN: Administration web interface for inspecting and manually rebuilding the index.
+ *
+ * HR: Administratorsko web sučelje za provjeru i ručnu obnovu indeksa.
  */
 final readonly class WorkspaceSearchSettingsController
 {
     /**
-     * HR: Inicijalizira objekt i njegove ovisnosti.
      * EN: Initializes the object and its dependencies.
+     *
+     * HR: Inicijalizira objekt i njegove ovisnosti.
      */
     public function __construct(
         private WorkspaceSearchModuleViewRenderer $views,
@@ -42,9 +44,10 @@ final readonly class WorkspaceSearchSettingsController
     }
 
     /**
- * HR: Prikazuje izbor cijelog sitea ili jednog aktivnog područja.
- * EN: Shows the whole-site or one-active-Workspace selection.
- */
+     * EN: Shows the whole-site or one-active-Workspace selection.
+     *
+     * HR: Prikazuje izbor cijelog sitea ili jednog aktivnog područja.
+     */
     public function index(): ResponseInterface
     {
         if (!$this->access->isAdministrator()) {
@@ -63,8 +66,9 @@ final readonly class WorkspaceSearchSettingsController
     }
 
     /**
-     * HR: Potpuno obnavlja odabrani opseg i javlja broj obrađenih i uklonjenih redaka.
      * EN: Fully rebuilds the selected scope and reports processed and removed rows.
+     *
+     * HR: Potpuno obnavlja odabrani opseg i javlja broj obrađenih i uklonjenih redaka.
      */
     public function reindex(ServerRequestInterface $request): ResponseInterface
     {
@@ -95,10 +99,14 @@ final readonly class WorkspaceSearchSettingsController
     }
 
     /**
-     * HR: Gradi instalacijski neovisnu aplikacijsku putanju.
      * EN: Builds an installation-independent application path.
      *
-     * HR: Gradi putanju rute uz bazni-path fallback. EN: Builds a route path with a base-path fallback.
+     *
+     * Builds a route path with a base-path fallback.
+     *
+     * HR: Gradi instalacijski neovisnu aplikacijsku putanju.
+     *
+     * Gradi putanju rute uz bazni-path fallback.
      */
     private function path(string $route, string $fallback): string
     {

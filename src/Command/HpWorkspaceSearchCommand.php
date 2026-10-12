@@ -9,14 +9,16 @@ use HeartPhrame\Config\ConfigInterface;
 use RuntimeException;
 
 /**
- * HR: CLI naredbe za instalaciju i obnovu izvedenog indeksa pretrage.
  * EN: CLI commands for installing and rebuilding the derived search index.
+ *
+ * HR: CLI naredbe za instalaciju i obnovu izvedenog indeksa pretrage.
  */
 final readonly class HpWorkspaceSearchCommand
 {
     /**
-     * HR: Inicijalizira objekt i njegove ovisnosti.
      * EN: Initializes the object and its dependencies.
+     *
+     * HR: Inicijalizira objekt i njegove ovisnosti.
      */
     public function __construct(
         private ConfigInterface $config,
@@ -25,12 +27,13 @@ final readonly class HpWorkspaceSearchCommand
     }
 
     /**
- * HR: Usmjerava složenu naredbu prema instalaciji, obnovi ili pomoći.
- * EN: Routes the compound command to installation, rebuild, or help.
- *
- * @param array<int, string> $arguments
- * @param array<string, mixed> $options
- */
+     * EN: Routes the compound command to installation, rebuild, or help.
+     *
+     * HR: Usmjerava složenu naredbu prema instalaciji, obnovi ili pomoći.
+     *
+     * @param array<int, string> $arguments
+     * @param array<string, mixed> $options
+     */
     public function run(array $arguments = [], array $options = []): int
     {
         $command = strtolower(trim($arguments[0] ?? 'help'));
@@ -43,8 +46,9 @@ final readonly class HpWorkspaceSearchCommand
     }
 
     /**
-     * HR: Kopira instalacijsku migraciju u aplikaciju.
      * EN: Copies the installation migration into the application.
+     *
+     * HR: Kopira instalacijsku migraciju u aplikaciju.
      */
     public function installMigration(): int
     {
@@ -65,8 +69,10 @@ final readonly class HpWorkspaceSearchCommand
     }
 
     /**
-     * HR: Potpuno obnavlja site ili jedno područje zadano kao `--workspace=ID`.
      * EN: Fully rebuilds the site or one Workspace supplied as `--workspace=ID`.
+     *
+     * HR: Potpuno obnavlja site ili jedno područje zadano kao `--workspace=ID`.
+     *
      * @param array<int,string> $arguments
      * @param array<string,mixed> $options
      */
@@ -92,8 +98,9 @@ final readonly class HpWorkspaceSearchCommand
     }
 
     /**
-     * HR: Ispisuje kratku dvojezično dokumentiranu CLI pomoć.
      * EN: Prints concise CLI help documented for both languages.
+     *
+     * HR: Ispisuje kratku dvojezično dokumentiranu CLI pomoć.
      */
     private function help(): int
     {

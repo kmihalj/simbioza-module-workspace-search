@@ -9,25 +9,28 @@ use HeartPhrame\Http\ResponseFactory;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * HR: Renderira view datoteke Workspace Search modula kroz aplikacijski layout.
  * EN: Renders Workspace Search views through the application layout.
+ *
+ * HR: Renderira view datoteke Workspace Search modula kroz aplikacijski layout.
  */
 final readonly class WorkspaceSearchModuleViewRenderer
 {
     /**
-     * HR: Inicijalizira objekt i njegove ovisnosti.
      * EN: Initializes the object and its dependencies.
+     *
+     * HR: Inicijalizira objekt i njegove ovisnosti.
      */
     public function __construct(private ResponseFactory $responses)
     {
     }
 
     /**
- * HR: Renderira modulsku view datoteku kroz glavni aplikacijski layout.
- * EN: Renders a module view through the main application layout.
- *
- * @param array<string, mixed> $data
- */
+     * EN: Renders a module view through the main application layout.
+     *
+     * HR: Renderira modulsku view datoteku kroz glavni aplikacijski layout.
+     *
+     * @param array<string, mixed> $data
+     */
     public function render(string $view, array $data = [], int $status = 200): ResponseInterface
     {
         return $this->responses->viewForModule(

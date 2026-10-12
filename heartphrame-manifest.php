@@ -34,8 +34,9 @@ return new class extends \HeartPhrame\Module\AbstractModuleManifest {
     ];
 
     /**
-     * HR: Pretraga se učitava tek nakon svih vlasnika podataka i navigacije.
      * EN: Search loads only after every data owner and the navigation module.
+     *
+     * HR: Pretraga se učitava tek nakon svih vlasnika podataka i navigacije.
      */
     public function canLoad(ContainerInterface $container): bool
     {
@@ -71,13 +72,21 @@ return new class extends \HeartPhrame\Module\AbstractModuleManifest {
         return true;
     }
 
-    /** HR: Odgađa integraciju do učitavanja svih ovisnosti. EN: Defers integration until dependencies load. */
+    /**
+     * EN: Defers integration until dependencies load.
+     *
+     * HR: Odgađa integraciju do učitavanja svih ovisnosti.
+     */
     public function requiresDeferredLoading(): bool
     {
         return true;
     }
 
-    /** HR: Vraća DI tvornice modula. EN: Returns module DI factories. */
+    /**
+     * EN: Returns module DI factories.
+     *
+     * HR: Vraća DI tvornice modula.
+     */
     public function getServices(): array
     {
         $services = require __DIR__ . '/config/services.php';
@@ -85,7 +94,11 @@ return new class extends \HeartPhrame\Module\AbstractModuleManifest {
         return is_array($services) ? $services : [];
     }
 
-    /** HR: Registrira stranicu, prijedloge i CSS. EN: Registers page, suggestions, and CSS routes. */
+    /**
+     * EN: Registers page, suggestions, and CSS routes.
+     *
+     * HR: Registrira stranicu, prijedloge i CSS.
+     */
     public function getBaseRoutes(): array
     {
         return [
@@ -128,13 +141,21 @@ return new class extends \HeartPhrame\Module\AbstractModuleManifest {
         ];
     }
 
-    /** HR: Vraća direktorij view predložaka. EN: Returns the view template directory. */
+    /**
+     * EN: Returns the view template directory.
+     *
+     * HR: Vraća direktorij view predložaka.
+     */
     public function getViewsPath(): string
     {
         return __DIR__ . '/views';
     }
 
-    /** HR: Izlaže migracijsku i indeksne CLI naredbe. EN: Exposes migration and indexing CLI commands. */
+    /**
+     * EN: Exposes migration and indexing CLI commands.
+     *
+     * HR: Izlaže migracijsku i indeksne CLI naredbe.
+     */
     public function getCommands(): array
     {
         return [
@@ -157,8 +178,9 @@ return new class extends \HeartPhrame\Module\AbstractModuleManifest {
     }
 
     /**
-     * HR: Veže neutralne Workspace promjene na ciljanu sinkronizaciju pretrage.
      * EN: Binds neutral Workspace changes to targeted search synchronization.
+     *
+     * HR: Veže neutralne Workspace promjene na ciljanu sinkronizaciju pretrage.
      *
      * @return EventListener[]
      */
@@ -173,7 +195,11 @@ return new class extends \HeartPhrame\Module\AbstractModuleManifest {
         ];
     }
 
-    /** HR: Dodaje tražilicu u sastavljivi gornji meni. EN: Adds search to the composable top menu. */
+    /**
+     * EN: Adds search to the composable top menu.
+     *
+     * HR: Dodaje tražilicu u sastavljivi gornji meni.
+     */
     public function getBootstrapCallables(): array
     {
         return [

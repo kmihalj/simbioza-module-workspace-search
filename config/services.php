@@ -112,8 +112,9 @@ $services = [
         ),
 ];
 
-// HR: Search endpoint pripada Search modulu i aktivira se samo uz API jezgru.
 // EN: The search endpoint belongs to Search and activates only with the API core.
+//
+// HR: Search endpoint pripada Search modulu i aktivira se samo uz API jezgru.
 if (interface_exists(\AaiEduHr\HeartPhrameModuleApi\Contract\ApiExtensionInterface::class)) {
     $services[WorkspaceSearchApiExtension::class] =
         static fn(): WorkspaceSearchApiExtension => new WorkspaceSearchApiExtension();
@@ -146,8 +147,9 @@ if (class_exists(\AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBack
                     true,
                 ),
                 static function (\AaiEduHr\HeartPhrameModuleBackup\Value\BackupImportContext $context) use ($container): void {
-                    // HR: Indeks je izveden podatak i uvijek se gradi iz vraćenog sadržaja.
                     // EN: The index is derived data and is always rebuilt from restored content.
+                    //
+                    // HR: Indeks je izveden podatak i uvijek se gradi iz vraćenog sadržaja.
                     $container->get(WorkspaceSearchIndexer::class)->rebuild(true);
                 },
             );
@@ -168,10 +170,11 @@ if (class_exists(\AaiEduHr\HeartPhrameModuleBackup\Service\CallbackFinalizerBack
                     true,
                 ),
                 static function (\AaiEduHr\HeartPhrameModuleBackup\Value\BackupImportContext $context) use ($container): void {
-                    // HR: Scoped restore može promijeniti slug područja. Workspace
-                    // provider zato objavljuje ciljnu mapu po stvarnom target slugu.
                     // EN: A scoped restore may change the workspace slug. The Workspace
                     // provider therefore publishes a mapping under the actual target slug.
+                    //
+                    // HR: Scoped restore može promijeniti slug područja. Workspace
+                    // provider zato objavljuje ciljnu mapu po stvarnom target slugu.
                     $targetSlug = trim((string)(
                         $context->optionsFor('workspace-scope')['target_slug']
                         ?? $context->scope->identifier

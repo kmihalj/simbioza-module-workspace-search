@@ -1,6 +1,6 @@
 # Testiranje na SQLiteu, PostgreSQL-u i MySQL-u
 
-English version: [testing_en.md](testing_en.md)
+Engleska verzija: [testing_en.md](testing_en.md)
 
 ## Lokalni skup modula
 

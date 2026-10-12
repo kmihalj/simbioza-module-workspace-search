@@ -16,8 +16,9 @@ use PHPUnit\Framework\TestCase;
 final class WorkspaceSearchSchemaTest extends TestCase
 {
     /**
-     * HR: Potvrđuje da je izvedeni indeks prenosiv i potpuno reverzibilan na SQLiteu.
      * EN: Confirms the derived index is portable and fully reversible on SQLite.
+     *
+     * HR: Potvrđuje da je izvedeni indeks prenosiv i potpuno reverzibilan na SQLiteu.
      */
     public function testMigrationCreatesAndDropsSearchIndex(): void
     {

@@ -44,8 +44,9 @@ final class WorkspaceSearchServiceTest extends TestCase
     private array $versions = [];
 
     /**
-     * HR: Gradi stvarni SQLite Auth, Workspace, Editor i Search presjek bez lažnog ACL-a.
      * EN: Builds a real SQLite Auth, Workspace, Editor, and Search slice without fake ACL.
+     *
+     * HR: Gradi stvarni SQLite Auth, Workspace, Editor i Search presjek bez lažnog ACL-a.
      */
     protected function setUp(): void
     {
@@ -112,8 +113,9 @@ final class WorkspaceSearchServiceTest extends TestCase
             }
 
             /**
-             * HR: Vraća samo izričito tražene objavljene verzije testa.
              * EN: Returns only explicitly requested published test versions.
+             *
+             * HR: Vraća samo izričito tražene objavljene verzije testa.
              */
             public function loadPublishedVersionsForIndexing(array $versionNumbersByDocument, string $language): array
             {
@@ -155,10 +157,11 @@ final class WorkspaceSearchServiceTest extends TestCase
     }
 
     /**
-     * HR: Gost ne vidi ograničenu stranicu ni kroz rezultate, broj ili isječak;
-     *     izričito ovlašteni korisnik je vidi, a drugi prijavljeni korisnik ne.
      * EN: A guest cannot see a restricted page through results, totals, or snippets;
      *     an explicitly allowed user can see it while another signed-in user cannot.
+     *
+     * HR: Gost ne vidi ograničenu stranicu ni kroz rezultate, broj ili isječak;
+     *     izričito ovlašteni korisnik je vidi, a drugi prijavljeni korisnik ne.
      */
     public function testSearchAppliesWorkspaceAndPageAclBeforeTotalsAndSnippets(): void
     {
@@ -188,10 +191,11 @@ final class WorkspaceSearchServiceTest extends TestCase
     }
 
     /**
-     * HR: Naziv područja mora biti pravi rezultat, ali tek nakon istog ACL
-     *     filtra koji štiti stranice, prijedloge i ukupan broj.
      * EN: A Workspace name must be a real result, but only after the same ACL
      *     filter that protects pages, suggestions, and totals.
+     *
+     * HR: Naziv područja mora biti pravi rezultat, ali tek nakon istog ACL
+     *     filtra koji štiti stranice, prijedloge i ukupan broj.
      */
     public function testSearchFindsVisibleWorkspaceByNameWithoutLeakingRestrictedWorkspace(): void
     {
@@ -216,7 +220,11 @@ final class WorkspaceSearchServiceTest extends TestCase
         );
     }
 
-    /** HR: Filter područja puni se i prije unosa minimalnog broja znakova. EN: The Workspace filter is populated before the minimum query length is entered. */
+    /**
+     * EN: The Workspace filter is populated before the minimum query length is entered.
+     *
+     * HR: Filter područja puni se i prije unosa minimalnog broja znakova.
+     */
     public function testEmptyQueryStillReturnsVisibleWorkspaceOptions(): void
     {
         $this->workspace('Dokumentacija', 'docs', 'public');
@@ -227,7 +235,13 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertSame(['docs'], array_column($result['workspaces'], 'slug'));
     }
 
-    /** HR: Prazan pojam bez filtra ne pokreće globalni popis, ali odabrano područje vraća sortirljivu paginiranu tablicu. EN: An empty unfiltered term does not run a global listing, while a selected Workspace returns a sortable paginated table. */
+    /**
+     * EN: An empty unfiltered term does not run a global listing.
+     * A selected Workspace returns a sortable paginated table.
+     *
+     * HR: Prazan pojam bez filtra ne pokreće globalni popis.
+     * Odabrano područje vraća sortirljivu paginiranu tablicu.
+     */
     public function testEmptyQueryRequiresNarrowingFilterAndBrowsesSelectedWorkspace(): void
     {
         $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
@@ -253,7 +267,11 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertSame('2026-08-12 10:00:00', $browse['items'][0]['modified_at']);
     }
 
-    /** HR: Naslovi u pregledu slijede hrvatsku abecedu. EN: Browse titles follow Croatian alphabet rules. */
+    /**
+     * EN: Browse titles follow Croatian alphabet rules.
+     *
+     * HR: Naslovi u pregledu slijede hrvatsku abecedu.
+     */
     public function testBrowseResultsUseRequestedLocaleForTitleOrdering(): void
     {
         $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
@@ -274,7 +292,11 @@ final class WorkspaceSearchServiceTest extends TestCase
         );
     }
 
-    /** HR: Dva ili više odabranih područja zahtijevaju pojam i zadržavaju klasični prikaz. EN: Two or more selected Workspaces require a term and retain classic results. */
+    /**
+     * EN: Two or more selected Workspaces require a term and retain classic results.
+     *
+     * HR: Dva ili više odabranih područja zahtijevaju pojam i zadržavaju klasični prikaz.
+     */
     public function testMultipleWorkspaceSelectionRequiresQuery(): void
     {
         $docs = $this->workspace('Dokumentacija', 'docs', 'public');
@@ -300,7 +322,11 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertSame(2, $withQuery['total']);
     }
 
-    /** HR: Autor pronalazi i stranice koje je korisnik stvorio i one koje je zadnji izmijenio. EN: Author filtering finds pages the user created and pages the user last modified. */
+    /**
+     * EN: Author filtering finds pages the user created and pages the user last modified.
+     *
+     * HR: Autor pronalazi i stranice koje je korisnik stvorio i one koje je zadnji izmijenio.
+     */
     public function testAuthorFilterIncludesPageAuthorAndLastModifier(): void
     {
         $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
@@ -316,10 +342,11 @@ final class WorkspaceSearchServiceTest extends TestCase
     }
 
     /**
-     * HR: Indeks koristi autora i datum nastanka Editor dokumenta, a ne
-     *     administratora i datum tehničkog Workspace importa.
      * EN: The index uses the Editor document creator and creation date, not
      *     the administrator and date of the technical Workspace import.
+     *
+     * HR: Indeks koristi autora i datum nastanka Editor dokumenta, a ne
+     *     administratora i datum tehničkog Workspace importa.
      */
     public function testImportedPageUsesDocumentCreationMetadataInsteadOfTechnicalNodeMetadata(): void
     {
@@ -347,7 +374,11 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertSame(0, $byImportingAdministrator['total']);
     }
 
-    /** HR: Sam datum od automatski završava danas, a sam datum do obuhvaća cijelu raniju povijest. EN: A lone from date ends today automatically, while a lone to date includes all earlier history. */
+    /**
+     * EN: A lone from date ends today automatically, while a lone to date includes all earlier history.
+     *
+     * HR: Sam datum od automatski završava danas, a sam datum do obuhvaća cijelu raniju povijest.
+     */
     public function testPublicationDateFiltersSupportOpenAndAutomaticBoundaries(): void
     {
         $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
@@ -362,7 +393,11 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertSame(['Stara stranica'], array_column($to['items'], 'title'));
     }
 
-    /** HR: Naslov objavljene stranice ostaje pretraživ neovisno o tekstu tijela. EN: A published page title remains searchable independently of its body text. */
+    /**
+     * EN: A published page title remains searchable independently of its body text.
+     *
+     * HR: Naslov objavljene stranice ostaje pretraživ neovisno o tekstu tijela.
+     */
     public function testSearchFindsPublishedPageByTitle(): void
     {
         $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
@@ -381,7 +416,11 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertSame('Jedinstveni naslov stranice', $result['items'][0]['title']);
     }
 
-    /** HR: Običan višerječni upit traži cijelu frazu. EN: A plain multi-word query searches the complete phrase. */
+    /**
+     * EN: A plain multi-word query searches the complete phrase.
+     *
+     * HR: Običan višerječni upit traži cijelu frazu.
+     */
     public function testPlainMultiWordQueryUsesExactPhrase(): void
     {
         $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
@@ -396,7 +435,11 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertStringContainsString('<mark>Dio 1</mark>', (string) $result['items'][0]['snippet_html']);
     }
 
-    /** HR: Plus i navodnici zadržavaju redoslijed obaveznih pojmova i fraza. EN: Plus and quotes preserve the order of required terms and phrases. */
+    /**
+     * EN: Plus and quotes preserve the order of required terms and phrases.
+     *
+     * HR: Plus i navodnici zadržavaju redoslijed obaveznih pojmova i fraza.
+     */
     public function testAdvancedQueryRequiresEveryTermAndQuotedPhrase(): void
     {
         $this->database->table(ModuleAuth::TABLE_AUTH_USERS)
@@ -419,10 +462,11 @@ final class WorkspaceSearchServiceTest extends TestCase
     }
 
     /**
-     * HR: Dokazuje da se jezični retci ne prepisuju te da ciljana obnova jednog
-     *     područja uklanja samo njegove zastarjele objave.
      * EN: Proves that language rows do not overwrite each other and that a
      *     targeted Workspace rebuild removes only its stale publications.
+     *
+     * HR: Dokazuje da se jezični retci ne prepisuju te da ciljana obnova jednog
+     *     područja uklanja samo njegove zastarjele objave.
      */
     public function testIndexIsSeparatedByLanguageAndWorkspaceRebuildRemovesStaleRows(): void
     {
@@ -460,10 +504,11 @@ final class WorkspaceSearchServiceTest extends TestCase
     }
 
     /**
-     * HR: Ugrađena pretraga područja ne smije vratiti podudaranje iz drugog
-     *     područja čak ni kada korisnik smije vidjeti oba područja.
      * EN: Embedded Workspace search must not return a match from another
      *     Workspace even when the actor may view both Workspaces.
+     *
+     * HR: Ugrađena pretraga područja ne smije vratiti podudaranje iz drugog
+     *     područja čak ni kada korisnik smije vidjeti oba područja.
      */
     public function testSuggestionsCanBeRestrictedToOneWorkspace(): void
     {
@@ -489,7 +534,11 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertSame(['Prvi rezultat'], array_column($embedded['items'], 'title'));
     }
 
-    /** HR: Višestruki filtar vraća samo odabrana vidljiva područja. EN: A multi-filter returns only selected visible Workspaces. */
+    /**
+     * EN: A multi-filter returns only selected visible Workspaces.
+     *
+     * HR: Višestruki filtar vraća samo odabrana vidljiva područja.
+     */
     public function testSearchCanBeRestrictedToMultipleVisibleWorkspaces(): void
     {
         $first = $this->workspace('Prvo područje', 'first', 'public');
@@ -515,7 +564,11 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertNotContains('Drugi rezultat', array_column($result['items'], 'title'));
     }
 
-    /** HR: Ugrađena pretraga bez valjanog cilja ne smije postati globalna. EN: Embedded search without a valid target must not become global. */
+    /**
+     * EN: Embedded search without a valid target must not become global.
+     *
+     * HR: Ugrađena pretraga bez valjanog cilja ne smije postati globalna.
+     */
     public function testEmbeddedSearchWithoutVisibleScopeReturnsNoResults(): void
     {
         $workspace = $this->workspace('Dokumentacija', 'docs', 'public');
@@ -535,8 +588,9 @@ final class WorkspaceSearchServiceTest extends TestCase
     }
 
     /**
-     * HR: Pokreće jednu reverzibilnu migraciju i prekida test na pogrešnom ugovoru.
      * EN: Runs one reversible migration and fails the test on an invalid contract.
+     *
+     * HR: Pokreće jednu reverzibilnu migraciju i prekida test na pogrešnom ugovoru.
      */
     private function runMigration(string $path): void
     {
@@ -546,8 +600,9 @@ final class WorkspaceSearchServiceTest extends TestCase
     }
 
     /**
-     * HR: Sprema testno područje s vlasnikom administratorom.
      * EN: Persists a test Workspace owned by the administrator.
+     *
+     * HR: Sprema testno područje s vlasnikom administratorom.
      *
      * @return array<string, mixed>
      */
@@ -562,8 +617,9 @@ final class WorkspaceSearchServiceTest extends TestCase
     }
 
     /**
-     * HR: Sprema dokument, njegov objavljeni workflow i nepromjenjivu Editor verziju.
      * EN: Persists a document, its published workflow, and immutable Editor version.
+     *
+     * HR: Sprema dokument, njegov objavljeni workflow i nepromjenjivu Editor verziju.
      *
      * @param array<string, mixed> $workspace
      * @return array<string, mixed>
@@ -610,8 +666,9 @@ final class WorkspaceSearchServiceTest extends TestCase
     }
 
     /**
-     * HR: Daje praznu web sesiju jer test izričito predaje svakog API/web aktera.
      * EN: Supplies an empty web session because the test explicitly passes every API/web actor.
+     *
+     * HR: Daje praznu web sesiju jer test izričito predaje svakog API/web aktera.
      */
     private function authnHandler(): AuthnHandlerInterface
     {

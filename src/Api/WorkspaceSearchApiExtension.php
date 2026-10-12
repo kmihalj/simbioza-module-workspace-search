@@ -8,15 +8,18 @@ use AaiEduHr\HeartPhrameModuleApi\Contract\ApiExtensionInterface;
 use AaiEduHr\HeartPhrameModuleApi\Contract\ApiRouteRegistry;
 
 /**
- * HR: Oglašava rutu pretrage generičkoj API jezgri.
  * EN: Advertises the search route to the generic API core.
+ *
+ * HR: Oglašava rutu pretrage generičkoj API jezgri.
+ *
  * @see \AaiEduHr\SimbiozaModuleWorkspaceSearch\Tests\Api\WorkspaceSearchApiExtensionTest
  */
 final readonly class WorkspaceSearchApiExtension implements ApiExtensionInterface
 {
     /**
-     * HR: Vraća stabilni identifikator Search proširenja.
      * EN: Returns the stable Search extension identifier.
+     *
+     * HR: Vraća stabilni identifikator Search proširenja.
      */
     public function id(): string
     {
@@ -24,8 +27,9 @@ final readonly class WorkspaceSearchApiExtension implements ApiExtensionInterfac
     }
 
     /**
-     * HR: Dodaje stabilni endpoint pretrage kroz zajednički sigurni registar.
      * EN: Adds the stable search endpoint through the shared secure registry.
+     *
+     * HR: Dodaje stabilni endpoint pretrage kroz zajednički sigurni registar.
      */
     public function register(ApiRouteRegistry $routes): void
     {

@@ -1,6 +1,6 @@
 # Primjeri web i HTTP API pretrage
 
-English version: [api_en.md](api_en.md)
+Engleska verzija: [api_en.md](api_en.md)
 
 ## Web pretraga
 

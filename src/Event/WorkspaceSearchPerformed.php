@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Event;
 
 /**
- * HR: Bilježi ACL-filtriranu pretragu bez spremanja korisnikova upita.
  * EN: Records an ACL-filtered search without storing the user's query text.
+ *
+ * HR: Bilježi ACL-filtriranu pretragu bez spremanja korisnikova upita.
  */
 final readonly class WorkspaceSearchPerformed
 {
-    /** HR: Stvara agregirani opis jedne ACL-filtrirane pretrage. EN: Creates an aggregate description of one ACL-filtered search. */
+    /**
+     * EN: Creates an aggregate description of one ACL-filtered search.
+     *
+     * HR: Stvara agregirani opis jedne ACL-filtrirane pretrage.
+     */
     public function __construct(
         public string $language,
         public int $queryLength,

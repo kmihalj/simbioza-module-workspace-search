@@ -16,10 +16,11 @@ use AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch;
 use HeartPhrame\Routing\UrlGenerator;
 
 /**
- * HR: Izvršava pretragu tek nakon stvarnog Workspace i page ACL filtriranja.
- *     Ukupan broj, isječci i prijedlozi nastaju isključivo iz dopuštenog skupa.
  * EN: Executes search only after actual Workspace and page ACL filtering.
  *     Totals, snippets, and suggestions are built exclusively from the allowed set.
+ *
+ * HR: Izvršava pretragu tek nakon stvarnog Workspace i page ACL filtriranja.
+ *     Ukupan broj, isječci i prijedlozi nastaju isključivo iz dopuštenog skupa.
  */
 final readonly class WorkspaceSearchService
 {
@@ -28,11 +29,12 @@ final readonly class WorkspaceSearchService
     public const PERSONAL_WORKSPACES_FILTER = '__personal__';
 
     /**
- * HR: Prima izvedeni indeks, jedinstveni Workspace ACL servis i konfiguraciju
- *     potrebnu za prijenosnu pretragu i sigurne poveznice rezultata.
- * EN: Receives the derived index, canonical Workspace ACL service, and
- *     configuration required for portable search and safe result links.
- */
+     * EN: Receives the derived index, canonical Workspace ACL service, and
+     *     configuration required for portable search and safe result links.
+     *
+     * HR: Prima izvedeni indeks, jedinstveni Workspace ACL servis i konfiguraciju
+     *     potrebnu za prijenosnu pretragu i sigurne poveznice rezultata.
+     */
     public function __construct(
         private Database $database,
         private WorkspaceAccessService $access,
@@ -46,8 +48,10 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Izvršava filtriranu i straničenu pretragu samo nad ACL-dopuštenim čvorovima.
      * EN: Executes filtered, paginated search only across ACL-authorized nodes.
+     *
+     * HR: Izvršava filtriranu i straničenu pretragu samo nad ACL-dopuštenim čvorovima.
+     *
      * @param array<string, mixed> $filters
      * @param array<string, mixed>|null $user
      * @return array<string, mixed>
@@ -226,8 +230,10 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Vraća ograničen popis prijedloga iz istog ACL-filtriranog skupa.
      * EN: Returns a bounded suggestion list from the same ACL-filtered set.
+     *
+     * HR: Vraća ograničen popis prijedloga iz istog ACL-filtriranog skupa.
+     *
      * @param array<string, mixed>|null $user
      * @return list<array{title:string,url:string,workspace:string}>
      */
@@ -255,8 +261,10 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Gradi skup dopuštenih čvorova i radnih prostora prije SQL pretrage.
      * EN: Builds the allowed node and Workspace set before the SQL search.
+     *
+     * HR: Gradi skup dopuštenih čvorova i radnih prostora prije SQL pretrage.
+     *
      * @param array<string, mixed>|null $user
      * @return array{list<int>,list<array<string,mixed>>}
      */
@@ -295,10 +303,11 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Pretvara podudaranje naziva, opisa ili sluga već ACL-dopuštenog
-     *     područja u pravi rezultat, neovisno o tome ima li objavljenu stranicu.
      * EN: Converts a name, description, or slug match from an already ACL-
      *     authorized Workspace into a real result even when it has no page.
+     *
+     * HR: Pretvara podudaranje naziva, opisa ili sluga već ACL-dopuštenog
+     *     područja u pravi rezultat, neovisno o tome ima li objavljenu stranicu.
      *
      * @param list<array<string,mixed>> $workspaces
      * @param list<string>|null $workspaceSlugs
@@ -354,10 +363,11 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Prihvaća novi višestruki filtar i zadržava kompatibilnost sa starim
-     *     jednokratnim parametrom `workspace`.
      * EN: Accepts the new multi-Workspace filter while retaining compatibility
      *     with the legacy single `workspace` parameter.
+     *
+     * HR: Prihvaća novi višestruki filtar i zadržava kompatibilnost sa starim
+     *     jednokratnim parametrom `workspace`.
      *
      * @param array<string,mixed> $filters
      * @return list<string>
@@ -382,10 +392,11 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Sjecište korisničkog odabira i ACL-vidljivih područja. Posebna stavka
-     *     osobnih područja razvija se samo u osobna područja koja korisnik vidi.
      * EN: Intersects the requested selection with ACL-visible Workspaces. The
      *     personal aggregate expands only to personal Workspaces the actor sees.
+     *
+     * HR: Sjecište korisničkog odabira i ACL-vidljivih područja. Posebna stavka
+     *     osobnih područja razvija se samo u osobna područja koja korisnik vidi.
      *
      * @param list<string> $requested
      * @param list<array<string,mixed>> $visibleWorkspaces
@@ -448,8 +459,10 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Rekurzivno skuplja identifikatore isključivo ACL-filtriranih dokumenata.
      * EN: Recursively collects identifiers from ACL-filtered document nodes only.
+     *
+     * HR: Rekurzivno skuplja identifikatore isključivo ACL-filtriranih dokumenata.
+     *
      * @param list<array<string, mixed>> $tree
      * @param list<int> $nodeIds
      */
@@ -465,12 +478,14 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Bez operatora cijeli upit tretira kao frazu. Navodnici i prefiks `+`
-     *     uključuju napredni način u kojem se svi pojmovi i fraze traže AND
-     *     semantikom, redom kojim su uneseni.
      * EN: Without operators, treats the whole query as one phrase. Quotes and
      *     the `+` prefix enable advanced mode where every term and phrase is
      *     required with AND semantics, in input order.
+     *
+     * HR: Bez operatora cijeli upit tretira kao frazu. Navodnici i prefiks `+`
+     *     uključuju napredni način u kojem se svi pojmovi i fraze traže AND
+     *     semantikom, redom kojim su uneseni.
+     *
      * @return list<string>
      */
     private function terms(string $query): array
@@ -502,8 +517,10 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Rangira točno i djelomično podudaranje naslova prije novijih objava.
      * EN: Ranks exact and partial title matches before newer publications.
+     *
+     * HR: Rangira točno i djelomično podudaranje naslova prije novijih objava.
+     *
      * @param array<mixed> $left
      * @param array<mixed> $right
      */
@@ -534,8 +551,9 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Sortira tablični pregled po dopuštenoj koloni i stabilnom naslovu.
      * EN: Sorts browse-table rows by an allowed column and a stable title fallback.
+     *
+     * HR: Sortira tablični pregled po dopuštenoj koloni i stabilnom naslovu.
      *
      * @param array<mixed> $left
      * @param array<mixed> $right
@@ -581,8 +599,10 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Pretvara interni indeksni redak u stabilni i sigurno istaknuti rezultat.
      * EN: Converts an internal index row into a stable, safely highlighted result.
+     *
+     * HR: Pretvara interni indeksni redak u stabilni i sigurno istaknuti rezultat.
+     *
      * @param array<string, mixed> $row
      * @return array<string, mixed>
      */
@@ -614,7 +634,11 @@ final readonly class WorkspaceSearchService
         ];
     }
 
-    /** HR: Gradi kanonsku putanju područja. EN: Builds the canonical Workspace path. */
+    /**
+     * EN: Builds the canonical Workspace path.
+     *
+     * HR: Gradi kanonsku putanju područja.
+     */
     private function workspacePath(string $workspaceSlug): string
     {
         try {
@@ -625,8 +649,9 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Gradi kanonsku putanju rezultata stranice.
      * EN: Builds the canonical path for a page result.
+     *
+     * HR: Gradi kanonsku putanju rezultata stranice.
      */
     private function pagePath(string $workspaceSlug, string $nodeSlug): string
     {
@@ -642,8 +667,9 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Izrezuje kontekst oko prvog pronađenog pojma bez vraćanja HTML-a stranice.
      * EN: Extracts context around the first match without returning page HTML.
+     *
+     * HR: Izrezuje kontekst oko prvog pronađenog pojma bez vraćanja HTML-a stranice.
      */
     private function snippet(string $body, string $query): string
     {
@@ -666,8 +692,10 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Escapea cijeli isječak pa tek zatim dodaje sigurne `mark` elemente.
      * EN: Escapes the complete snippet before adding safe `mark` elements.
+     *
+     * HR: Escapea cijeli isječak pa tek zatim dodaje sigurne `mark` elemente.
+     *
      * @param list<string> $terms
      */
     private function highlight(string $snippet, array $terms): string
@@ -689,8 +717,9 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Odabire podržani jezik ili zadani jezik sitea.
      * EN: Selects a supported language or the site default.
+     *
+     * HR: Odabire podržani jezik ili zadani jezik sitea.
      */
     private function language(string $language): string
     {
@@ -702,8 +731,9 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Prihvaća samo potpuni ISO datum kako filtar ne bi mijenjao SQL semantiku.
      * EN: Accepts only a complete ISO date so the filter cannot alter SQL semantics.
+     *
+     * HR: Prihvaća samo potpuni ISO datum kako filtar ne bi mijenjao SQL semantiku.
      */
     private function date(mixed $value): string
     {
@@ -712,7 +742,11 @@ final readonly class WorkspaceSearchService
         return preg_match('/^\d{4}-\d{2}-\d{2}$/D', $value) === 1 ? $value : '';
     }
 
-    /** HR: Ograničava sortiranje na prikazane kolone tablice. EN: Limits sorting to displayed table columns. */
+    /**
+     * EN: Limits sorting to displayed table columns.
+     *
+     * HR: Ograničava sortiranje na prikazane kolone tablice.
+     */
     private function sort(mixed $value): string
     {
         $sort = $this->string($value);
@@ -723,8 +757,9 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Normalizira isključivo skalarne ulazne vrijednosti.
      * EN: Normalizes scalar input values only.
+     *
+     * HR: Normalizira isključivo skalarne ulazne vrijednosti.
      */
     private function string(mixed $value): string
     {
@@ -732,8 +767,9 @@ final readonly class WorkspaceSearchService
     }
 
     /**
-     * HR: Ograničava stranične brojeve na konfigurirani sigurni raspon.
      * EN: Clamps pagination numbers to the configured safe range.
+     *
+     * HR: Ograničava stranične brojeve na konfigurirani sigurni raspon.
      */
     private function boundedInt(mixed $value, int $fallback, int $minimum, int $maximum): int
     {

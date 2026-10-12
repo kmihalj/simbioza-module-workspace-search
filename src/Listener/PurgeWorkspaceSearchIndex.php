@@ -8,15 +8,27 @@ use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
 use AaiEduHr\SimbiozaModuleWorkspace\Event\WorkspacePermanentlyDeleting;
 use AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch;
 
-/** HR: Uklanja izvedeni indeks područja prije brisanja izvora. EN: Removes the derived Workspace index before its source is deleted. */
+/**
+ * EN: Removes the derived Workspace index before its source is deleted.
+ *
+ * HR: Uklanja izvedeni indeks područja prije brisanja izvora.
+ */
 final readonly class PurgeWorkspaceSearchIndex
 {
-    /** HR: Prima spremište izvedenog indeksa. EN: Receives derived-index storage. */
+    /**
+     * EN: Receives derived-index storage.
+     *
+     * HR: Prima spremište izvedenog indeksa.
+     */
     public function __construct(private Database $database)
     {
     }
 
-    /** HR: Briše sve jezične retke indeksa zadanog područja. EN: Deletes all language-index rows for the supplied Workspace. */
+    /**
+     * EN: Deletes all language-index rows for the supplied Workspace.
+     *
+     * HR: Briše sve jezične retke indeksa zadanog područja.
+     */
     public function __invoke(WorkspacePermanentlyDeleting $event): void
     {
         if (!$this->database->schema()->hasTable(ModuleWorkspaceSearch::TABLE_INDEX)) {

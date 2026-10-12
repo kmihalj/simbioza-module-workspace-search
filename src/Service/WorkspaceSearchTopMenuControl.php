@@ -10,14 +10,16 @@ use HeartPhrame\Routing\UrlGenerator;
 use Throwable;
 
 /**
- * HR: Dodaje kompaktnu pretragu u desnu zonu gornjeg menija.
  * EN: Adds a compact search form to the top menu's right-hand area.
+ *
+ * HR: Dodaje kompaktnu pretragu u desnu zonu gornjeg menija.
  */
 final readonly class WorkspaceSearchTopMenuControl implements TopMenuControlProviderInterface
 {
     /**
-     * HR: Inicijalizira objekt i njegove ovisnosti.
      * EN: Initializes the object and its dependencies.
+     *
+     * HR: Inicijalizira objekt i njegove ovisnosti.
      */
     public function __construct(
         private UrlGenerator $urls,
@@ -26,9 +28,10 @@ final readonly class WorkspaceSearchTopMenuControl implements TopMenuControlProv
     }
 
     /**
- * HR: Renderira dostupnu tražilicu kao samostalni `<li>` fragment.
- * EN: Renders the available search form as a standalone `<li>` fragment.
- */
+     * EN: Renders the available search form as a standalone `<li>` fragment.
+     *
+     * HR: Renderira dostupnu tražilicu kao samostalni `<li>` fragment.
+     */
     public function render(): string
     {
         try {
@@ -51,8 +54,9 @@ final readonly class WorkspaceSearchTopMenuControl implements TopMenuControlProv
     }
 
     /**
-     * HR: Sigurno escapea dinamične HTML atribute i tekst.
      * EN: Safely escapes dynamic HTML attributes and text.
+     *
+     * HR: Sigurno escapea dinamične HTML atribute i tekst.
      */
     private function escape(string $value): string
     {

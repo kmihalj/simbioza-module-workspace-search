@@ -8,19 +8,18 @@ use Psr\Container\ContainerInterface;
 use Throwable;
 
 /**
- * HR: Dodaje administraciju indeksa u postojeću grupu postavki područja.
  * EN: Adds index administration to the existing Workspace settings group.
+ *
+ * HR: Dodaje administraciju indeksa u postojeću grupu postavki područja.
  */
 final readonly class WorkspaceSearchMenuIntegration
 {
     private const MENU_REPOSITORY = \AaiEduHr\HeartPhrameModuleMenu\Service\MenuConfigRepository::class;
 
     /**
-
-     * HR: Inicijalizira objekt i njegove ovisnosti.
-
      * EN: Initializes the object and its dependencies.
-
+     *
+     * HR: Inicijalizira objekt i njegove ovisnosti.
      */
 
     public function __construct(private ContainerInterface $container)
@@ -28,9 +27,10 @@ final readonly class WorkspaceSearchMenuIntegration
     }
 
     /**
- * HR: Osvježava vlastitu stavku bez mijenjanja ručno složenog redoslijeda menija.
- * EN: Refreshes the owned item without changing the manually arranged menu order.
- */
+     * EN: Refreshes the owned item without changing the manually arranged menu order.
+     *
+     * HR: Osvježava vlastitu stavku bez mijenjanja ručno složenog redoslijeda menija.
+     */
     public function registerSettingsMenuItem(): void
     {
         if (!class_exists(self::MENU_REPOSITORY)) {
@@ -45,14 +45,17 @@ final readonly class WorkspaceSearchMenuIntegration
 
             $repository->upsertItemsForSection('settings', [$this->definition()]);
         } catch (Throwable) {
-            // HR: Opcionalni settings meni ne smije zaustaviti pretragu.
             // EN: Optional settings-menu integration must not stop search.
+            //
+            // HR: Opcionalni settings meni ne smije zaustaviti pretragu.
         }
     }
 
     /**
-     * HR: Vraća definiciju stavke koju modul pretrage posjeduje.
      * EN: Returns the settings-item definition owned by Search.
+     *
+     * HR: Vraća definiciju stavke koju modul pretrage posjeduje.
+     *
      * @return array<string,mixed>
      */
     private function definition(): array

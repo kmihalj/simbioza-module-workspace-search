@@ -1,6 +1,6 @@
 # Arhitektura, ACL i indeksiranje
 
-English version: [index_en.md](index_en.md)
+Engleska verzija: [index_en.md](index_en.md)
 
 ## Granica modula
 

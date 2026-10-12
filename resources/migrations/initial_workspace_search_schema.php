@@ -9,10 +9,11 @@ use AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch;
 
 return new class implements ReversibleMigrationInterface {
     /**
-     * HR: Kreira prenosivi indeks objavljenih Workspace stranica. ACL se ne
-     *     kopira u indeks, nego se ponovno računa za svaki zahtjev.
      * EN: Creates the portable index of published Workspace pages. ACL is not
      *     copied into the index; it is recalculated for every request.
+     *
+     * HR: Kreira prenosivi indeks objavljenih Workspace stranica. ACL se ne
+     *     kopira u indeks, nego se ponovno računa za svaki zahtjev.
      */
     public function up(Database $db): void
     {
@@ -53,8 +54,9 @@ return new class implements ReversibleMigrationInterface {
     }
 
     /**
-     * HR: Uklanja isključivo izvedeni indeks pretrage.
      * EN: Removes only the derived search index.
+     *
+     * HR: Uklanja isključivo izvedeni indeks pretrage.
      */
     public function down(Database $db): void
     {

@@ -10,16 +10,18 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * HR: Odmah sinkronizira izvedeni indeks nakon promjene objavljenog Workspace
- *     sadržaja. Izvorni Workspace modul pritom ne ovisi o Search modulu.
  * EN: Immediately synchronizes the derived index after published Workspace
  *     content changes, without making Workspace depend on Search.
+ *
+ * HR: Odmah sinkronizira izvedeni indeks nakon promjene objavljenog Workspace
+ *     sadržaja. Izvorni Workspace modul pritom ne ovisi o Search modulu.
  */
 final readonly class SynchronizeWorkspaceSearchIndex
 {
     /**
-     * HR: Inicijalizira listener servisom za održavanje indeksa.
      * EN: Initializes the listener with the index maintenance service.
+     *
+     * HR: Inicijalizira listener servisom za održavanje indeksa.
      */
     public function __construct(
         private WorkspaceSearchIndexer $indexer,
@@ -28,16 +30,18 @@ final readonly class SynchronizeWorkspaceSearchIndex
     }
 
     /**
-     * HR: Ograničava obnovu na promijenjeno područje i, kada je poznat, jezik.
      * EN: Limits synchronization to the changed Workspace and, when known, locale.
+     *
+     * HR: Ograničava obnovu na promijenjeno područje i, kada je poznat, jezik.
      */
     public function __invoke(WorkspaceContentChanged $event): void
     {
         /*
-HR: Novi ili trajno odbačeni neobjavljeni čvorovi nemaju objavljeni
-    redak, pa spremanje prvog nacrta ne treba pokretati indeksiranje.
-EN: New or permanently discarded unpublished nodes have no published
-    row, so saving the first draft must not trigger indexing.
+         * EN: New or permanently discarded unpublished nodes have no published
+         *     row, so saving the first draft must not trigger indexing.
+         *
+         * HR: Novi ili trajno odbačeni neobjavljeni čvorovi nemaju objavljeni
+         *     redak, pa spremanje prvog nacrta ne treba pokretati indeksiranje.
          */
         if (
             in_array($event->reason, [

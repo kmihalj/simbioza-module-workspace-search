@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Service;
 
+use HeartPhrame\Config\ConfigArrayMerger;
 use HeartPhrame\Config\ConfigInterface;
+use RuntimeException;
 
 /**
- * HR: Čita postavke pretrage iz modula i opcionalnog aplikacijskog overridea.
- * EN: Reads search settings from the module and an optional application override.
+ * EN: Reads package defaults and the framework's layered workspace-search configuration.
+ *
+ * HR: Čita paketne postavke i frameworkovu slojevitu konfiguraciju pretrage područja.
  */
 final readonly class WorkspaceSearchConfig
 {
@@ -16,25 +19,32 @@ final readonly class WorkspaceSearchConfig
     private array $settings;
 
     /**
- * HR: Spaja zadane postavke modula s opcionalnim aplikacijskim overrideom.
- * EN: Merges module defaults with an optional application override.
- */
+     * EN: The host loads HPH_CONFIG_PATH/workspace-search/workspace-search.php.
+     * Invalid configuration fails; no old flat application file is read.
+     *
+     * HR: Host učitava HPH_CONFIG_PATH/workspace-search/workspace-search.php.
+     * Nevaljana konfiguracija prekida rad; stara ravna datoteka aplikacije ne čita se.
+     */
     public function __construct(ConfigInterface $config, string $moduleRoot)
     {
-        $defaults = require rtrim($moduleRoot, '/') . '/config/workspace-search.php';
-        $appPath = rtrim($config->getAppRootDir(), '/') . '/config/workspace-search.php';
-        $override = is_file($appPath) ? require $appPath : [];
-        $this->settings = $this->stringKeyArray([
-        ...$this->stringKeyArray($defaults),
-        ...$this->stringKeyArray($override),
-        ]);
+        $defaults = (static fn(string $file): mixed => require $file)(
+            rtrim($moduleRoot, '/') . '/config/workspace-search.php',
+        );
+        $override = $config->get('workspace-search.workspace-search', []);
+        if (!is_array($defaults) || !is_array($override)) {
+            throw new RuntimeException('Workspace Search configuration must be an array.');
+        }
+
+        $this->settings = $this->stringKeyArray(ConfigArrayMerger::merge(
+            $this->stringKeyArray($defaults),
+            $this->stringKeyArray($override),
+        ));
     }
 
     /**
-     * HR: Izvršava internu operaciju resultsPerPage uz provjeru ulaza.
-     * EN: Performs the internal resultsPerPage operation with validated input.
+     * EN: Returns the default page size.
      *
-     * HR: Vraća zadanu veličinu stranice. EN: Returns the default page size.
+     * HR: Vraća zadanu veličinu stranice.
      */
     public function resultsPerPage(): int
     {
@@ -42,10 +52,9 @@ final readonly class WorkspaceSearchConfig
     }
 
     /**
-     * HR: Izvršava internu operaciju maximumResultsPerPage uz provjeru ulaza.
-     * EN: Performs the internal maximumResultsPerPage operation with validated input.
+     * EN: Returns the maximum page size.
      *
-     * HR: Vraća najveću dopuštenu veličinu stranice. EN: Returns the maximum page size.
+     * HR: Vraća najveću dopuštenu veličinu stranice.
      */
     public function maximumResultsPerPage(): int
     {
@@ -53,10 +62,9 @@ final readonly class WorkspaceSearchConfig
     }
 
     /**
-     * HR: Izvršava internu operaciju minimumQueryLength uz provjeru ulaza.
-     * EN: Performs the internal minimumQueryLength operation with validated input.
+     * EN: Returns the minimum query length.
      *
-     * HR: Vraća najmanju duljinu upita. EN: Returns the minimum query length.
+     * HR: Vraća najmanju duljinu upita.
      */
     public function minimumQueryLength(): int
     {
@@ -64,10 +72,9 @@ final readonly class WorkspaceSearchConfig
     }
 
     /**
-     * HR: Izvršava internu operaciju snippetLength uz provjeru ulaza.
-     * EN: Performs the internal snippetLength operation with validated input.
+     * EN: Returns the safe snippet length.
      *
-     * HR: Vraća duljinu sigurnog isječka. EN: Returns the safe snippet length.
+     * HR: Vraća duljinu sigurnog isječka.
      */
     public function snippetLength(): int
     {
@@ -75,10 +82,9 @@ final readonly class WorkspaceSearchConfig
     }
 
     /**
-     * HR: Izvršava internu operaciju refreshSeconds uz provjeru ulaza.
-     * EN: Performs the internal refreshSeconds operation with validated input.
+     * EN: Returns the index refresh interval.
      *
-     * HR: Vraća interval automatskog osvježavanja indeksa. EN: Returns the index refresh interval.
+     * HR: Vraća interval automatskog osvježavanja indeksa.
      */
     public function refreshSeconds(): int
     {
@@ -86,8 +92,9 @@ final readonly class WorkspaceSearchConfig
     }
 
     /**
-     * HR: Čita ograničenu cjelobrojnu postavku.
      * EN: Reads a bounded integer setting.
+     *
+     * HR: Čita ograničenu cjelobrojnu postavku.
      */
     private function boundedInt(string $key, int $fallback, int $minimum, int $maximum): int
     {
@@ -97,8 +104,9 @@ final readonly class WorkspaceSearchConfig
     }
 
     /**
-     * HR: Zadržava samo tekstualne konfiguracijske ključeve.
      * EN: Keeps only string configuration keys.
+     *
+     * HR: Zadržava samo tekstualne konfiguracijske ključeve.
      * @return array<string, mixed>
      */
     private function stringKeyArray(mixed $values): array

@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-// HR: Izvorni hrvatski ključevi i prijevodi jezika en.
 // EN: Canonical Croatian source keys and en translations.
+//
+// HR: Izvorni hrvatski ključevi i prijevodi jezika en.
 return array (
   'Osobna područja' => 'Personal Workspaces',
   'Pretraga područja' => 'Workspace Search',

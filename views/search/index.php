@@ -6,8 +6,9 @@ use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceValue;
 use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchService;
 
 /**
- * HR: Rezultati pretrage već su ACL-filtrirani u servisu; view samo prikazuje siguran model.
  * EN: Search results are already ACL-filtered in the service; the view only renders the safe model.
+ *
+ * HR: Rezultati pretrage već su ACL-filtrirani u servisu; view samo prikazuje siguran model.
  *
  * @var \HeartPhrame\View\View $this
  * @var array<string, mixed> $result

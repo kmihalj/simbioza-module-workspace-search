@@ -39,18 +39,18 @@
     "require": {
         "php": ">=8.2",
         "aaieduhr/heartphrame-framework": "^0.0.25",
-        "aaieduhr/heartphrame-module-auth": "^0.1.14",
-        "aaieduhr/heartphrame-module-editor-html": "^0.1.35",
-        "aaieduhr/heartphrame-module-menu": "^0.1.19",
-        "aaieduhr/heartphrame-module-orm": "^0.1.7",
-        "aaieduhr/simbioza-module-workspace": "^0.1.35"
+        "aaieduhr/heartphrame-module-auth": "^0.3.0",
+        "aaieduhr/heartphrame-module-editor-html": "^0.3.0",
+        "aaieduhr/heartphrame-module-menu": "^0.3.0",
+        "aaieduhr/heartphrame-module-orm": "^0.3.0",
+        "aaieduhr/simbioza-module-workspace": "^0.3.0"
     },
     "suggest": {
         "aaieduhr/heartphrame-module-backup": "Rebuilds the derived ACL-aware search index after a successful restore instead of archiving it.",
         "aaieduhr/heartphrame-module-api": "Exposes ACL-aware Workspace searches through /api/v1/workspace-search."
     },
     "require-dev": {
-        "aaieduhr/heartphrame-module-api": "^0.1.6",
+        "aaieduhr/heartphrame-module-api": "^0.3.0",
         "phpstan/phpstan": "^2.2.15",
         "phpunit/phpunit": "^10.5.65 || ^11.5.56",
         "rector/rector": "^2.6.7",
@@ -101,7 +101,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.1.x-dev"
+            "dev-main": "0.3.x-dev"
         }
     }
 }

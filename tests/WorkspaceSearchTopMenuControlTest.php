@@ -14,8 +14,9 @@ use PHPUnit\Framework\TestCase;
 final class WorkspaceSearchTopMenuControlTest extends TestCase
 {
     /**
-     * HR: Tražilica u navigaciji mora se okomito poravnati s jezikom i računom.
      * EN: Navigation search must align vertically with language and account controls.
+     *
+     * HR: Tražilica u navigaciji mora se okomito poravnati s jezikom i računom.
      */
     public function testControlUsesVerticallyCenteredNavigationItem(): void
     {

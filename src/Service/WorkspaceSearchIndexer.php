@@ -13,19 +13,21 @@ use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceWorkflowService;
 use AaiEduHr\SimbiozaModuleWorkspaceSearch\ModuleWorkspaceSearch;
 
 /**
- * HR: Sinkronizira izvedeni indeks sa stvarno objavljenim Workspace verzijama.
- *     Nacrti, arhivirane verzije i ACL podaci nikada se ne zapisuju u indeks.
  * EN: Synchronizes the derived index with actually published Workspace versions.
  *     Drafts, archived versions, and ACL data are never stored in the index.
+ *
+ * HR: Sinkronizira izvedeni indeks sa stvarno objavljenim Workspace verzijama.
+ *     Nacrti, arhivirane verzije i ACL podaci nikada se ne zapisuju u indeks.
  */
 final class WorkspaceSearchIndexer
 {
     private int $lastRefreshTimestamp = 0;
 
     /**
- * HR: Prima izvore Workspace metapodataka, objavljenih Editor verzija i autora.
- * EN: Receives sources for Workspace metadata, published Editor versions, and authors.
- */
+     * EN: Receives sources for Workspace metadata, published Editor versions, and authors.
+     *
+     * HR: Prima izvore Workspace metapodataka, objavljenih Editor verzija i autora.
+     */
     public function __construct(
         private readonly Database $database,
         private readonly WorkspaceRepository $workspaces,
@@ -38,8 +40,9 @@ final class WorkspaceSearchIndexer
     }
 
     /**
-     * HR: Osvježava indeks najviše jednom u podešenom intervalu po PHP procesu.
      * EN: Refreshes the index at most once per configured interval per PHP process.
+     *
+     * HR: Osvježava indeks najviše jednom u podešenom intervalu po PHP procesu.
      */
     public function refreshIfDue(): void
     {
@@ -53,12 +56,13 @@ final class WorkspaceSearchIndexer
         }
 
         /*
-HR: Zadnja oznaka iz baze sprječava da svaki PHP-FPM proces zasebno
-    obnavlja isti indeks. Statička oznaka iznad pokriva ponavljanja
-    unutar jednog zahtjeva/procesa.
-EN: The database timestamp prevents every PHP-FPM process from
-    rebuilding the same index. The static timestamp above covers
-    repetitions inside one request/process.
+         * EN: The database timestamp prevents every PHP-FPM process from
+         *     rebuilding the same index. The static timestamp above covers
+         *     repetitions inside one request/process.
+         *
+         * HR: Zadnja oznaka iz baze sprječava da svaki PHP-FPM proces zasebno
+         *     obnavlja isti indeks. Statička oznaka iznad pokriva ponavljanja
+         *     unutar jednog zahtjeva/procesa.
          */
         $newest = $this->database->table(ModuleWorkspaceSearch::TABLE_INDEX)
         ->orderBy('indexed_at', 'DESC')
@@ -78,8 +82,10 @@ EN: The database timestamp prevents every PHP-FPM process from
     }
 
     /**
-     * HR: Ponovno gradi indeks; `full=true` prvo uklanja sve izvedene retke.
      * EN: Rebuilds the index; `full=true` first removes all derived rows.
+     *
+     * HR: Ponovno gradi indeks; `full=true` prvo uklanja sve izvedene retke.
+     *
      * @return array{indexed:int,removed:int}
      */
     public function rebuild(
@@ -287,10 +293,12 @@ EN: The database timestamp prevents every PHP-FPM process from
     }
 
     /**
-     * HR: Sinkronizira samo jedno područje, odnosno po potrebi samo jednu
-     *     jezičnu inačicu, bez skeniranja ostalih područja.
      * EN: Synchronizes one Workspace, optionally just one language variant,
      *     without scanning unrelated Workspaces.
+     *
+     * HR: Sinkronizira samo jedno područje, odnosno po potrebi samo jednu
+     *     jezičnu inačicu, bez skeniranja ostalih područja.
+     *
      * @return array{indexed:int,removed:int}
      */
     public function synchronizeWorkspace(int $workspaceId, ?string $language = null): array
@@ -303,12 +311,14 @@ EN: The database timestamp prevents every PHP-FPM process from
     }
 
     /**
-     * HR: Sinkronizira točno jedan objavljeni jezični red stranice. Ova je
-     *     putanja namijenjena događaju objave kako obična objava ne bi
-     *     skenirala ostale stranice područja.
      * EN: Synchronizes exactly one published language row of a page. This path
      *     is intended for publication events so an ordinary publish does not
      *     scan unrelated Workspace pages.
+     *
+     * HR: Sinkronizira točno jedan objavljeni jezični red stranice. Ova je
+     *     putanja namijenjena događaju objave kako obična objava ne bi
+     *     skenirala ostale stranice područja.
+     *
      * @return array{indexed:int,removed:int}
      */
     public function synchronizeNode(int $workspaceId, int $nodeId, string $language): array
@@ -440,8 +450,10 @@ EN: The database timestamp prevents every PHP-FPM process from
     }
 
     /**
-     * HR: Potpuno briše i ponovno gradi izvedene retke jednog područja.
      * EN: Fully removes and rebuilds the derived rows of one Workspace.
+     *
+     * HR: Potpuno briše i ponovno gradi izvedene retke jednog područja.
+     *
      * @return array{indexed:int,removed:int}
      */
     public function rebuildWorkspace(int $workspaceId): array
@@ -454,8 +466,9 @@ EN: The database timestamp prevents every PHP-FPM process from
     }
 
     /**
-     * HR: Uklanja jedan zastarjeli red stranice i jezika.
      * EN: Removes one stale page-and-language row.
+     *
+     * HR: Uklanja jedan zastarjeli red stranice i jezika.
      */
     private function removeNodeLanguage(int $nodeId, string $language): int
     {
@@ -466,8 +479,9 @@ EN: The database timestamp prevents every PHP-FPM process from
     }
 
     /**
-     * HR: Pretvara objavljeni HTML u sažeti čisti tekst bez izvođenja oznaka ili skripti.
      * EN: Converts published HTML to compact plain text without executing tags or scripts.
+     *
+     * HR: Pretvara objavljeni HTML u sažeti čisti tekst bez izvođenja oznaka ili skripti.
      */
     private function plainText(string $html): string
     {
@@ -477,8 +491,9 @@ EN: The database timestamp prevents every PHP-FPM process from
     }
 
     /**
-     * HR: Oblikuje korisničko ime kao Prezime Ime i rezultat predmemorira za obnovu indeksa.
      * EN: Formats a user name as Surname Given-name and caches it for an index rebuild.
+     *
+     * HR: Oblikuje korisničko ime kao Prezime Ime i rezultat predmemorira za obnovu indeksa.
      *
      * @param array<int,string> $cache
      */
@@ -504,8 +519,9 @@ EN: The database timestamp prevents every PHP-FPM process from
     }
 
     /**
-     * HR: Normalizira tekst za prijenosno pretraživanje bez HTML razmaka.
      * EN: Normalizes text for portable searching without HTML whitespace.
+     *
+     * HR: Normalizira tekst za prijenosno pretraživanje bez HTML razmaka.
      */
     private function normalize(string $text): string
     {
