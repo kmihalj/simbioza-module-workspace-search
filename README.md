@@ -1,6 +1,6 @@
 # Simbioza Workspace Search module
 
-> Release 0.3.1 supports host Content Security Policy nonces for existing interface scripts while preserving standalone behavior.
+> Release 0.3.2 serves the search stylesheet as CSS so browsers apply the theme and scrollable pickers correctly.
 
 [Croatian version](README_hr.md)
 

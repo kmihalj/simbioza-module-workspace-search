@@ -159,9 +159,8 @@ final readonly class WorkspaceSearchController
         $css = is_file($path) ? file_get_contents($path) : '';
 
         return $this->responses->text(is_string($css) ? $css : '', headers: [
-        'Content-Type' => 'text/css; charset=utf-8',
         'Cache-Control' => 'public, max-age=300',
-        ]);
+        ], contentType: 'text/css; charset=utf-8');
     }
 
     /**

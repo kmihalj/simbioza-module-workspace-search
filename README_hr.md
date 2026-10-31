@@ -1,6 +1,6 @@
 # Simbioza Workspace Search modul
 
-> Izdanje 0.3.1 podržava Content Security Policy nonce domaćina za postojeće skripte sučelja, uz očuvanje samostalnog rada.
+> Izdanje 0.3.2 poslužuje stilove pretrage kao CSS kako bi preglednici pravilno primijenili temu i padajuće izbornike sa skrolanjem.
 
 [Engleska verzija](README.md)
 
