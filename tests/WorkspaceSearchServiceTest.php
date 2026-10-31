@@ -60,12 +60,16 @@ final class WorkspaceSearchServiceTest extends TestCase
             'workspace' => ['site_default_language' => 'hr'],
         ]);
         $this->database = new Database($config, $helper);
-        $this->runMigration(
-            __DIR__ . '/../vendor/aaieduhr/heartphrame-module-auth/resources/migrations/initial_auth_schema.php',
-        );
-        $this->runMigration(
-            __DIR__ . '/../vendor/aaieduhr/simbioza-module-workspace/resources/migrations/initial_workspace_schema.php',
-        );
+        // EN: Use migrations from the modules actually loaded by this test environment.
+        //
+        // HR: Koristi migracije modula koje je ovo testno okruženje stvarno učitalo.
+        $authFile = (new \ReflectionClass(ModuleAuth::class))->getFileName();
+        $workspaceFile = (new \ReflectionClass(WorkspaceRepository::class))->getFileName();
+        $this->assertIsString($authFile);
+        $this->assertIsString($workspaceFile);
+        $workspaceRoot = dirname($workspaceFile, 3);
+        $this->runMigration(dirname($authFile, 2) . '/resources/migrations/initial_auth_schema.php');
+        $this->runMigration($workspaceRoot . '/resources/migrations/initial_workspace_schema.php');
         $this->runMigration(__DIR__ . '/../resources/migrations/initial_workspace_search_schema.php');
         $names = [
             1 => ['Ivo', 'Alfa'],
@@ -103,7 +107,7 @@ final class WorkspaceSearchServiceTest extends TestCase
         $workflow = new WorkspaceWorkflowService($this->repository);
         $workspaceConfig = new WorkspaceConfig(
             $config,
-            __DIR__ . '/../vendor/aaieduhr/simbioza-module-workspace',
+            $workspaceRoot,
         );
         $access = new WorkspaceAccessService($this->repository, $this->authnHandler(), $workspaceConfig, $workflow);
         $provider = new class ($this->versions) implements EditorPublishedVersionProviderInterface {

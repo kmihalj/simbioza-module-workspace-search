@@ -486,7 +486,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
     <?php endif; ?>
 </section>
 
-<script>
+<script nonce="<?= $this->escape(is_string($scriptNonce ?? null) ? $scriptNonce : '') ?>">
         document.querySelectorAll('[data-workspace-search-scope-picker]').forEach(function (picker) {
             var all = picker.querySelector('[data-workspace-search-scope-all]');
             var scopes = Array.from(picker.querySelectorAll('[data-workspace-search-scope]'));

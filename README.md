@@ -1,6 +1,6 @@
 # Simbioza Workspace Search module
 
-> Release 0.3.0 preparation: the tagged installation commands below apply after coordinated publication of the application and modules. Development verification uses local packages; older releases cannot replace this configuration and schema.
+> Release 0.3.1 supports host Content Security Policy nonces for existing interface scripts while preserving standalone behavior.
 
 [Croatian version](README_hr.md)
 
