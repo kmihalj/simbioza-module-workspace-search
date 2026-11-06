@@ -28,6 +28,11 @@ Repeat `workspaces[]` to select multiple Workspaces. The special values
 Workspaces visible to the actor. The legacy single `workspace` parameter remains
 supported.
 
+An empty search can browse one selected Workspace or a narrowed author/date
+filter. Multiple selected Workspace choices require a search term. A query
+shorter than `minimum_query_length` (default 2 characters) is not executed.
+Dates and sorting still apply to the same ACL-filtered result set.
+
 ## HTTP API
 
 Install and enable `aaieduhr/heartphrame-module-api`, then issue a key containing
@@ -79,9 +84,15 @@ $context = stream_context_create(['http' => [
         'Accept: application/json',
     ],
     'ignore_errors' => true,
+    'follow_location' => 0,
+    'timeout' => 15,
 ]]);
 $response = file_get_contents($url, false, $context);
-$payload = json_decode((string)$response, true, 512, JSON_THROW_ON_ERROR);
+$statusLine = $http_response_header[0] ?? '';
+if (!is_string($response) || preg_match('/^HTTP\/\S+ 2[0-9]{2}\b/', $statusLine) !== 1) {
+    throw new RuntimeException('The API request failed.');
+}
+$payload = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
 
 foreach ($payload['data'] ?? [] as $item) {
     echo $item['title'] . ' -> ' . $item['url'] . PHP_EOL;

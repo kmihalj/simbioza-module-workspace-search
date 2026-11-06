@@ -20,7 +20,7 @@ actual ACL before results leave the module.
 For every web or API request the service:
 
 1. enumerates Workspaces visible to the explicit actor (or public Workspaces
-   for a guest);
+   for a guest, including a Workspace visible through an explicit public-page exception);
 2. localizes Workspace names/descriptions and matches the name, description,
    and slug only in that ACL-authorized collection;
 3. builds the visible tree in requested and fallback languages;

@@ -19,7 +19,8 @@ iz modula.
 
 Za svaki web ili API zahtjev servis:
 
-1. izlista područja vidljiva izričitom korisniku, odnosno javna područja gostu;
+1. izlista područja vidljiva izričitom korisniku, odnosno javno dostupna
+   područja gostu, uključujući privatno područje s izričitom iznimkom javne stranice;
 2. lokalizira nazive i opise područja te traži naziv, opis i slug samo u tom
    ACL-dopuštenom skupu;
 3. izgradi vidljivo stablo na traženom i fallback jeziku;

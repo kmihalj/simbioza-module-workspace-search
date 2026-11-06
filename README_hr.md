@@ -65,7 +65,9 @@ riječ `drugi` i frazu `Dio 2`. Ista je uputa prikazana ispod obje forme za
 pretragu.
 
 Nacrti, arhivirani workflowi, obrisane stranice i nedostupni potomci nikada se
-ne vraćaju. Gost dobiva samo javne stranice. Prijavljeni web korisnik i vlasnik
+ne vraćaju. Gost dobiva samo javno dostupne stranice, uključujući objavljenu
+stranicu s izričitom javnom iznimkom u privatnom Području. Iznimka ne otkriva
+skrivene roditelje, susjedne stranice ni njihov sadržaj. Prijavljeni web korisnik i vlasnik
 API ključa dobivaju samo sadržaj dopušten efektivnim Workspace i naslijeđenim
 page ACL-om. Filtriranje se događa prije brojanja, isječaka, straničenja i
 prijedloga, pa metapodaci ograničene stranice ne cure.
@@ -76,6 +78,11 @@ popisa prijedloga. Obični globalni odabir otvara se s unaprijed označenim
 izvornim područjem ili područjima, pa posjetitelj može ponoviti pretragu nad
 drugim vidljivim odabirom ili svim vidljivim područjima. Poslužitelj i dalje
 provjerava zadane slugove područja i sva uobičajena ACL pravila.
+
+Ovaj indeks obuhvaća objavljene HTML dokumente u Područjima. Ne indeksira
+samostalne HTML stranice, definicije anketa, odgovore ispitanika ni sadržaj
+kalendarskih događaja. Opcionalni Survey čvor može biti dostupan u stablu
+Područja bez zasebnog zapisa za pretraživanje punog teksta.
 
 ## Rad s indeksom
 

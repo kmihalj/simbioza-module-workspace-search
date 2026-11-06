@@ -27,6 +27,11 @@ Parametar `workspaces[]` može se ponoviti za više područja. Posebne vrijednos
 `__all__` i `__personal__` znače sva vidljiva odnosno sva korisniku vidljiva
 osobna područja. Stari jednokratni parametar `workspace` ostaje podržan.
 
+Prazna pretraga može pregledavati jedno odabrano Područje ili skup sužen
+filtrom autora/datuma. Više odabranih Područja traži pojam pretrage. Pojam
+kraći od `minimum_query_length` (zadano 2 znaka) ne izvršava se. Datumi i
+redoslijed primjenjuju se na isti skup rezultata filtriran ovlastima.
+
 ## HTTP API
 
 Instalirajte i uključite `aaieduhr/heartphrame-module-api`, pa izdajte ključ
@@ -79,9 +84,15 @@ $context = stream_context_create(['http' => [
         'Accept: application/json',
     ],
     'ignore_errors' => true,
+    'follow_location' => 0,
+    'timeout' => 15,
 ]]);
 $response = file_get_contents($url, false, $context);
-$payload = json_decode((string)$response, true, 512, JSON_THROW_ON_ERROR);
+$statusLine = $http_response_header[0] ?? '';
+if (!is_string($response) || preg_match('/^HTTP\/\S+ 2[0-9]{2}\b/', $statusLine) !== 1) {
+    throw new RuntimeException('API zahtjev nije uspio.');
+}
+$payload = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
 
 foreach ($payload['data'] ?? [] as $item) {
     echo $item['title'] . ' -> ' . $item['url'] . PHP_EOL;

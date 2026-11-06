@@ -67,7 +67,9 @@ forms.
 
 Workspace matches are returned even when the Workspace has no published page.
 Drafts, archived workflows, deleted pages, and inaccessible descendants are
-never returned. Guest searches contain public Workspaces and pages only.
+never returned. Guests receive only publicly readable Workspaces and pages,
+including a published page explicitly made public inside a private Workspace.
+That exception never exposes its hidden parents, siblings or their content.
 Authenticated web users and API-key owners receive only content allowed by
 their effective Workspace and inherited page ACL. Filtering occurs before
 totals, snippets, pagination, and suggestions, preventing metadata leaks.
@@ -79,6 +81,11 @@ with those Workspaces preselected, so the visitor can repeat the search across
 another visible selection or all visible Workspaces. The server intersects every
 submitted slug with current ACL visibility; an embedded form without any valid
 target returns no results instead of widening the initial search globally.
+
+This index covers published HTML document nodes in Workspaces. It does not
+index standalone HTML pages, questionnaire definitions, respondent answers or
+Calendar event bodies. Optional Survey nodes can be navigable in the Workspace
+tree without becoming full-text Search records.
 
 ## Index operations
 
