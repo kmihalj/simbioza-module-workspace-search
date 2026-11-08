@@ -12,6 +12,17 @@ The unit/integration suite checks migration portability, exact published-version
 indexing, locale fallback, guest/public ACL, authenticated inherited ACL,
 pagination, snippets, and menu registration.
 
+Metadata regressions use real SQLite Workspace/Auth tables and canonical ACL:
+private-only labels, property keys and values are absent from guest results and
+lookups; editorial draft/review state cannot change reader counts. Tests cover
+AND combinations, full-length exact values, literal wildcard input, fallback,
+and live publication/ACL changes. With 55 distinct labels the lookup returns
+25/25/5 options across three pages. A query listener asserts one bounded
+metadata SELECT (`LIMIT 26`) and at most 20 SQL queries for the first page,
+preventing a per-node metadata query. Rendered-view tests verify filter removal,
+URL/locale persistence, escaping, and named dependent controls. These checks run
+inside `composer on-commit`; they do not require a browser or application data.
+
 ## Real application matrix
 
 From HFClean run the isolated suite, which creates disposable databases and

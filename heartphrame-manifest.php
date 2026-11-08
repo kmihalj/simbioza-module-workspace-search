@@ -119,6 +119,13 @@ return new class extends \HeartPhrame\Module\AbstractModuleManifest {
             ],
             [
                 'GET',
+                '/search/lookups/metadata/{kind}',
+                WorkspaceSearchController::class . '@metadata',
+                'workspace-search.lookup.metadata',
+                [],
+            ],
+            [
+                'GET',
                 '/settings/workspace-search',
                 WorkspaceSearchSettingsController::class . '@index',
                 'workspace-search.settings',
@@ -136,6 +143,13 @@ return new class extends \HeartPhrame\Module\AbstractModuleManifest {
                 '/search/assets.css',
                 WorkspaceSearchController::class . '@styles',
                 'workspace-search.assets.css',
+                [],
+            ],
+            [
+                'GET',
+                '/search/metadata.js',
+                WorkspaceSearchController::class . '@metadataScript',
+                'workspace-search.assets.metadata',
                 [],
             ],
         ];

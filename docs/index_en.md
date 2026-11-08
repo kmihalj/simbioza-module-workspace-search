@@ -27,7 +27,7 @@ For every web or API request the service:
 4. applies inherited node restrictions and removes inaccessible descendants;
 5. limits the SQL candidate set to those node IDs;
 6. searches the exact published page title and body and applies optional
-   Workspace/author/date filters;
+   Workspace/author/date/label/property/publication-status filters;
 7. selects the requested locale or exact published site-default fallback;
 8. only then combines Workspace/page results and computes totals, snippets,
    highlights, and pagination.
@@ -37,6 +37,14 @@ published page title remains searchable independently of its body text.
 
 The index intentionally contains no authorization decision because users,
 groups, and inherited restrictions can change without reindexing page text.
+
+Labels and structured properties stay in the canonical Workspace tables and
+are matched with correlated SQL predicates. Picker options use the same
+authorized node set and database pagination (25 options plus a has-more flag),
+not a complete metadata catalogue loaded into PHP or the page. Actual draft or
+review status additionally requires edit, publish, or manage permission on the
+page; readers see the effective published state. See the
+[filter and lookup examples](api_en.md#labels-structured-properties-and-publication-status).
 
 ## Language behavior
 

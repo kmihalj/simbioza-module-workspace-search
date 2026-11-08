@@ -1,6 +1,6 @@
 # Simbioza Workspace Search module
 
-> Release 0.3.2 serves the search stylesheet as CSS so browsers apply the theme and scrollable pickers correctly.
+> Release 0.3.4 adds ACL-aware label, structured-property and publication-status filters, server-paged choices and removable active filters. See the [release notes](docs/release-0.3.4_en.md).
 
 [Croatian version](README_hr.md)
 
@@ -32,7 +32,7 @@ dependencies rather than optional suggestions.
 ## Installation
 
 ```bash
-composer require aaieduhr/simbioza-module-workspace-search:^0.3.0
+composer require aaieduhr/simbioza-module-workspace-search:^0.3.4
 vendor/bin/hph workspace-search:install-migration
 vendor/bin/hph orm-migrate:up
 vendor/bin/hph workspace-search:rebuild
@@ -50,7 +50,7 @@ the application's configured base path).
 - sanitized plain text of the exact published Editor version;
 - publishing author;
 - requested language with site-default fallback;
-- optional Workspace and publication-date filters.
+- optional Workspace, author, publication-date, label, structured-property and publication-status filters.
 
 The full search form offers a checkbox picker for any combination of ordinary
 Workspaces visible to the current visitor, plus **All visible Workspaces**.
@@ -66,8 +66,10 @@ word `second`, and the phrase `Part 2`. The same rule is shown below both search
 forms.
 
 Workspace matches are returned even when the Workspace has no published page.
-Drafts, archived workflows, deleted pages, and inaccessible descendants are
-never returned. Guests receive only publicly readable Workspaces and pages,
+Unpublished draft text, archived workflows, deleted pages, and inaccessible
+descendants are never searched. Authorized editors can filter draft/review
+changes to already published pages; readers see only their effective published
+state. Guests receive only publicly readable Workspaces and pages,
 including a published page explicitly made public inside a private Workspace.
 That exception never exposes its hidden parents, siblings or their content.
 Authenticated web users and API-key owners receive only content allowed by

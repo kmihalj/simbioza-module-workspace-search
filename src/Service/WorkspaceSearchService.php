@@ -28,6 +28,8 @@ final readonly class WorkspaceSearchService
 
     public const PERSONAL_WORKSPACES_FILTER = '__personal__';
 
+    private WorkspaceSearchMetadataFilters $metadata;
+
     /**
      * EN: Receives the derived index, canonical Workspace ACL service, and
      *     configuration required for portable search and safe result links.
@@ -45,6 +47,7 @@ final readonly class WorkspaceSearchService
         private UrlGenerator $urls,
         private ?WorkspacePresentationRegistry $presentations = null,
     ) {
+        $this->metadata = new WorkspaceSearchMetadataFilters($database);
     }
 
     /**
@@ -80,6 +83,8 @@ final readonly class WorkspaceSearchService
 
         $sort = $this->sort($filters['sort'] ?? 'title');
         $direction = strtolower($this->string($filters['direction'] ?? 'asc')) === 'desc' ? 'desc' : 'asc';
+        $metadataFilters = $this->metadata->normalize($filters);
+        $hasMetadataFilters = array_filter($metadataFilters, static fn(string $value): bool => $value !== '') !== [];
 
         $base = [
         'query' => $query,
@@ -103,6 +108,7 @@ final readonly class WorkspaceSearchService
         'to' => $to,
         'sort' => $sort,
         'direction' => $direction,
+        ...$metadataFilters,
         ],
         'workspaces' => [],
         ];
@@ -121,7 +127,8 @@ final readonly class WorkspaceSearchService
         );
         $base['workspace_scopes'] = $workspaceScope['tokens'];
         $multipleWorkspaceSelection = !$workspaceScope['all'] && count($workspaceScope['tokens']) > 1;
-        $hasNarrowingFilter = !$workspaceScope['all'] || $author !== '' || $from !== '' || $to !== '';
+        $hasNarrowingFilter = !$workspaceScope['all'] || $author !== '' || $from !== '' || $to !== ''
+            || $hasMetadataFilters;
         $base['query_required_for_multiple_workspaces'] = $query === '' && $multipleWorkspaceSelection;
         $browseMode = $query === '' && $hasNarrowingFilter && !$multipleWorkspaceSelection;
         $searchExecuted = $hasSearchQuery || $browseMode;
@@ -131,10 +138,16 @@ final readonly class WorkspaceSearchService
             return $base;
         }
 
-        [$visibleNodeIds] = $this->visibleScope($user, $language, $defaultLanguage, true);
+        [$visibleNodeIds, , $workflowNodeIds] = $this->visibleScope(
+            $user,
+            $language,
+            $defaultLanguage,
+            true,
+            $workspaceScope['all'] ? null : $workspaceScope['slugs'],
+        );
 
         $this->indexer->refreshIfDue();
-        $workspaceResults = $hasSearchQuery && $author === '' && $from === '' && $to === ''
+        $workspaceResults = $hasSearchQuery && $author === '' && $from === '' && $to === '' && !$hasMetadataFilters
             ? $this->workspaceResults(
                 $visibleWorkspaces,
                 $query,
@@ -178,6 +191,8 @@ final readonly class WorkspaceSearchService
             if ($to !== '') {
                 $builder->where('published_at', '<=', $to . ' 23:59:59');
             }
+
+            $this->metadata->apply($builder, $metadataFilters, $workflowNodeIds);
 
             foreach ($this->terms($query) as $term) {
                 $needle = '%' . $term . '%';
@@ -230,6 +245,49 @@ final readonly class WorkspaceSearchService
     }
 
     /**
+     * EN: Lists metadata only from currently authorized published pages, with bounded database pagination.
+     *
+     * HR: Prikazuje metapodatke samo aktualno dopuštenih objavljenih stranica, uz ograničeno straničenje u bazi.
+     *
+     * @param array<string,mixed> $filters
+     * @param array<string,mixed>|null $user
+     * @return array{items:list<array{id:string,label:string}>,page:int,hasMore:bool}
+     */
+    public function metadataLookupPage(
+        string $kind,
+        string $query,
+        string $language,
+        array $filters = [],
+        ?array $user = null,
+        int $page = 1,
+    ): array {
+        $language = $this->language($language);
+        $defaultLanguage = $this->workspaceConfig->siteDefaultLanguage();
+        [, $workspaces] = $this->visibleScope($user, $language, $defaultLanguage, false);
+        $scope = $this->resolvedWorkspaceScope(
+            $this->workspaceScopes($filters, $this->string($filters['workspace'] ?? '')),
+            $workspaces,
+            $this->string($filters['embedded'] ?? '') === '1',
+        );
+        [$nodeIds] = $this->visibleScope(
+            $user,
+            $language,
+            $defaultLanguage,
+            true,
+            $scope['all'] ? null : $scope['slugs'],
+        );
+
+        return $this->metadata->lookupPage(
+            $kind,
+            $nodeIds,
+            array_values(array_unique([$language, $defaultLanguage])),
+            $query,
+            $page,
+            $this->string($filters['property_key'] ?? ''),
+        );
+    }
+
+    /**
      * EN: Returns a bounded suggestion list from the same ACL-filtered set.
      *
      * HR: Vraća ograničen popis prijedloga iz istog ACL-filtriranog skupa.
@@ -266,28 +324,35 @@ final readonly class WorkspaceSearchService
      * HR: Gradi skup dopuštenih čvorova i radnih prostora prije SQL pretrage.
      *
      * @param array<string, mixed>|null $user
-     * @return array{list<int>,list<array<string,mixed>>}
+     * @param list<string>|null $workspaceSlugs
+     * @return array{list<int>,list<array<string,mixed>>,list<int>}
      */
     private function visibleScope(
         ?array $user,
         string $language,
         string $defaultLanguage,
         bool $collectNodeIds = true,
+        ?array $workspaceSlugs = null,
     ): array {
         $nodeIds = [];
+        $workflowNodeIds = [];
         $workspaces = [];
         $visibleWorkspaces = $this->access->visibleWorkspaces($user);
         $visibleWorkspaces = $this->presentations instanceof WorkspacePresentationRegistry
             ? $this->presentations->many($visibleWorkspaces, $language)
             : $this->workspaces->localizeWorkspaces($visibleWorkspaces, $language, $defaultLanguage);
         foreach ($visibleWorkspaces as $workspace) {
-            if ($collectNodeIds) {
+            $slug = WorkspaceValue::string($workspace['slug'] ?? '');
+            if (
+                $collectNodeIds
+                && ($workspaceSlugs === null || in_array($slug, $workspaceSlugs, true))
+            ) {
                 $tree = $this->access->visibleTreeForLanguages(
                     $workspace,
                     $user,
                     array_values(array_unique([$language, $defaultLanguage])),
                 );
-                $this->collectNodeIds($tree, $nodeIds);
+                $this->collectNodeIds($tree, $nodeIds, $workflowNodeIds);
             }
 
             $workspaces[] = [
@@ -299,7 +364,7 @@ final readonly class WorkspaceSearchService
             ];
         }
 
-        return [array_values(array_unique($nodeIds)), $workspaces];
+        return [array_values(array_unique($nodeIds)), $workspaces, array_values(array_unique($workflowNodeIds))];
     }
 
     /**
@@ -465,15 +530,25 @@ final readonly class WorkspaceSearchService
      *
      * @param list<array<string, mixed>> $tree
      * @param list<int> $nodeIds
+     * @param list<int> $workflowNodeIds
      */
-    private function collectNodeIds(array $tree, array &$nodeIds): void
+    private function collectNodeIds(array $tree, array &$nodeIds, array &$workflowNodeIds): void
     {
         foreach ($tree as $node) {
             if (WorkspaceValue::string($node['node_type'] ?? '') === 'document') {
-                $nodeIds[] = WorkspaceValue::int($node['id'] ?? 0);
+                $nodeId = WorkspaceValue::int($node['id'] ?? 0);
+                $nodeIds[] = $nodeId;
+                $permissions = is_array($node['permissions'] ?? null) ? $node['permissions'] : [];
+                if (
+                    (bool)($permissions['can_edit'] ?? false)
+                    || (bool)($permissions['can_publish'] ?? false)
+                    || (bool)($permissions['can_manage'] ?? false)
+                ) {
+                    $workflowNodeIds[] = $nodeId;
+                }
             }
 
-            $this->collectNodeIds(WorkspaceValue::rows($node['children'] ?? null), $nodeIds);
+            $this->collectNodeIds(WorkspaceValue::rows($node['children'] ?? null), $nodeIds, $workflowNodeIds);
         }
     }
 

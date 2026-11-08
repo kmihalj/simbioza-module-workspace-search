@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace AaiEduHr\SimbiozaModuleWorkspaceSearch\Tests;
 
+use DOMDocument;
+use DOMXPath;
+use HeartPhrame\View\View;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 #[CoversNothing]
 final class WorkspaceSearchViewTest extends TestCase
@@ -170,5 +174,92 @@ final class WorkspaceSearchViewTest extends TestCase
         $this->assertStringContainsString("'modified_at' => __('Zadnja izmjena')", $view);
         $this->assertStringContainsString("'modified_by' => __('Izmijenio')", $view);
         $this->assertStringContainsString('$sortPath($column)', $view);
+    }
+
+    /**
+     * EN: Actual rendered links remove only their filter and preserve the query and locale without injecting HTML.
+     *
+     * HR: Stvarno iscrtane poveznice uklanjaju samo svoj filtar i čuvaju upit i jezik bez umetanja HTML-a.
+     */
+    public function testRenderedFilterChipsPreserveUrlStateAndEscapeValues(): void
+    {
+        $parameters = [
+            'q' => 'Report', 'lang' => 'fr', 'workspaces' => ['docs'], 'label' => '<script>alert(1)</script>',
+            'property_key' => 'owner', 'property_value' => 'A&B', 'workflow' => 'in_review', 'page' => 7,
+        ];
+        $view = (new ReflectionClass(View::class))->newInstanceWithoutConstructor();
+        $html = $view->forExternalPartial(__DIR__ . '/../views/search/filter-chips.php', [
+            'filters' => $parameters,
+            'paginationQuery' => $parameters,
+            'searchPath' => '/example/search',
+            'query' => 'Report',
+            'language' => 'fr',
+            'selectedWorkspaceScopes' => ['docs'],
+            'workspaceNames' => ['docs' => 'Documentation'],
+            'personalWorkspaceFilter' => '__personal__',
+            'allWorkspaceFilter' => '__all__',
+            'selectedAuthorLabel' => '',
+        ]);
+        $document = new DOMDocument();
+        $document->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_NOERROR | LIBXML_NOWARNING);
+
+        $xpath = new DOMXPath($document);
+        $this->assertSame(0, $xpath->query('//script')->length);
+        $this->assertStringContainsString('&lt;script&gt;', $html);
+        $links = $xpath->query('//nav/a');
+        $this->assertCount(6, $links);
+        $states = [];
+        foreach ($links as $link) {
+            $url = $link->attributes?->getNamedItem('href')->nodeValue ?? '';
+            $state = [];
+            parse_str((string)parse_url($url, PHP_URL_QUERY), $state);
+            $this->assertSame('Report', $state['q']);
+            $this->assertSame('fr', $state['lang']);
+            $this->assertArrayNotHasKey('page', $state);
+            $states[] = $state;
+        }
+
+        $this->assertArrayNotHasKey('workspaces', $states[0]);
+        $this->assertArrayNotHasKey('label', $states[1]);
+        $this->assertSame('A&B', $states[1]['property_value']);
+        $this->assertArrayNotHasKey('property_key', $states[2]);
+        $this->assertArrayNotHasKey('property_value', $states[2]);
+        $this->assertSame('owner', $states[3]['property_key']);
+        $this->assertArrayNotHasKey('property_value', $states[3]);
+        $this->assertSame(['q' => 'Report', 'lang' => 'fr'], $states[5]);
+    }
+
+    /**
+     * EN: Metadata controls have names, live feedback, and an initially disabled dependent value picker.
+     *
+     * HR: Kontrole metapodataka imaju nazive, povratne poruke i početno isključen ovisni birač vrijednosti.
+     */
+    public function testRenderedMetadataPickersAreNamedAndDoNotEmbedOptions(): void
+    {
+        $view = (new ReflectionClass(View::class))->newInstanceWithoutConstructor();
+        $html = $view->forExternalPartial(__DIR__ . '/../views/search/metadata-filters.php', [
+            'filters' => ['label' => '"><script>alert(1)</script>'],
+            'metadataLookupPaths' => [
+                'label' => '/example/search/lookups/metadata/labels',
+                'property_key' => '/example/search/lookups/metadata/properties',
+                'property_value' => '/example/search/lookups/metadata/values',
+            ],
+        ]);
+        $document = new DOMDocument();
+        $document->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_NOERROR | LIBXML_NOWARNING);
+
+        $xpath = new DOMXPath($document);
+        $this->assertSame(0, $xpath->query('//script')->length);
+        foreach (['label', 'property_key', 'property_value'] as $name) {
+            $id = 'workspace-search-' . $name . '-toggle';
+            $this->assertSame(1, $xpath->query('//label[@for="' . $id . '"]')->length);
+            $this->assertSame(1, $xpath->query('//button[@id="' . $id . '"]')->length);
+        }
+
+        $dependent = $xpath->query('//button[@id="workspace-search-property_value-toggle"][@disabled]');
+        $this->assertSame(1, $dependent->length);
+        $this->assertSame(3, $xpath->query('//*[@data-metadata-loading][@role="status"]')->length);
+        $this->assertSame(3, $xpath->query('//*[@data-metadata-error][@role="alert"]')->length);
+        $this->assertSame(0, $xpath->query('//*[@data-metadata-list]/*')->length);
     }
 }

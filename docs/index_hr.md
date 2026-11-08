@@ -27,7 +27,7 @@ Za svaki web ili API zahtjev servis:
 4. primijeni naslijeđena ograničenja čvora i ukloni nedostupne potomke;
 5. ograniči SQL kandidate na dobivene ID-eve čvorova;
 6. pretraži naslov i tekst točno objavljene stranice te primijeni opcionalne
-   filtre područja, autora i datuma;
+   filtre područja, autora, datuma, oznaka, svojstava i statusa objave;
 7. odabere traženi locale ili točno objavljeni fallback zadanog jezika sitea;
 8. tek tada spoji rezultate područja i stranica te izračuna broj, isječke,
    isticanje i straničenje.
@@ -38,6 +38,14 @@ tekstu njezina tijela.
 
 Indeks namjerno ne sprema odluku o ovlaštenju jer se korisnici, grupe i
 naslijeđena ograničenja mogu promijeniti bez ponovnog indeksiranja teksta.
+
+Oznake i strukturirana svojstva ostaju u izvornim Workspace tablicama i
+uspoređuju se povezanim SQL uvjetima. Opcije birača koriste isti dopušteni skup
+čvorova i straničenje u bazi (25 opcija i oznaka nastavka), bez učitavanja
+cijelog kataloga metapodataka u PHP ili stranicu. Filtriranje stvarnog stanja
+nacrta i pregleda dodatno zahtijeva pravo uređivanja, objavljivanja ili
+upravljanja stranicom; čitatelji vide efektivno objavljeno stanje. Pogledajte
+[primjere filtara i birača](api_hr.md#oznake-strukturirana-svojstva-i-status-objave).
 
 ## Ponašanje jezika
 

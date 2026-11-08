@@ -17,6 +17,8 @@ use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchService;
  * @var string $searchPath
  * @var string $authorLookupPath
  * @var string $selectedAuthorLabel
+ * @var array<string,string> $metadataLookupPaths
+ * @var string $metadataScriptPath
  * @var array<string,scalar|list<scalar>> $paginationQuery
  */
 
@@ -296,8 +298,13 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                     >
                 </div>
             </div>
+            <div class="row g-3 mt-1 align-items-end">
+                <?php require __DIR__ . '/metadata-filters.php'; ?>
+            </div>
         </div>
     </form>
+
+    <?php require __DIR__ . '/filter-chips.php'; ?>
 
     <aside class="card shadow-sm mt-3 hph-workspace-search__help" aria-labelledby="workspace-search-help-title">
         <div class="card-body">
@@ -330,6 +337,14 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                         . 'svaki odabrani kriterij dodatno sužava rezultate.',
                     )) ?>
                 </li>
+                <li><?= $this->escape(__(
+                    'Oznaku, svojstvo i status možete kombinirati s ostalim filtrima. '
+                    . 'Vrijednost svojstva mora točno odgovarati odabranoj vrijednosti.',
+                )) ?></li>
+                <li><?= $this->escape(__(
+                    'Pretražuju se objavljene verzije. '
+                    . 'Nacrti izmjena i status pregleda vidljivi su samo ovlaštenim urednicima.',
+                )) ?></li>
                 <li><?= $this->escape(__(
                     'Ako samo upišete jednu ili više riječi, pretražuje se cijeli upisani izraz kao jedna fraza. '
                     . 'Ako rezultat mora sadržavati više zasebnih riječi ili fraza, ispred svake stavite znak +. '
@@ -481,7 +496,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
         </p>
     <?php else : ?>
         <p class="text-muted mt-4">
-            <?= $this->escape(__('Upišite traženi pojam ili odaberite područje, autora ili datum objave.')) ?>
+            <?= $this->escape(__('Upišite traženi pojam ili odaberite filtar.')) ?>
         </p>
     <?php endif; ?>
 </section>
@@ -669,7 +684,7 @@ $workspaceSelectionLabel = $allWorkspacesSelected
             var from = form.querySelector('[name="from"]');
             var to = form.querySelector('[name="to"]');
             var missingFilterMessage = <?= json_encode(
-                __('Upišite traženi pojam ili odaberite područje, autora ili datum objave.'),
+                __('Upišite traženi pojam ili odaberite filtar.'),
                 JSON_UNESCAPED_UNICODE,
             ) ?>;
             var multipleWorkspacesMessage = <?= json_encode(
@@ -684,7 +699,9 @@ $workspaceSelectionLabel = $allWorkspacesSelected
                 var needsFilter = allWorkspaces?.checked
                     && String(author?.value || '') === ''
                     && String(from?.value || '') === ''
-                    && String(to?.value || '') === '';
+                    && String(to?.value || '') === ''
+                    && !Array.from(form.querySelectorAll('[data-metadata-value], [name="workflow"]'))
+                        .some(function (field) { return String(field.value || '') !== ''; });
                 var message = emptyQuery && selectedWorkspaceCount > 1
                     ? multipleWorkspacesMessage
                     : (emptyQuery && needsFilter ? missingFilterMessage : '');
@@ -697,3 +714,5 @@ $workspaceSelectionLabel = $allWorkspacesSelected
             query?.addEventListener('input', function () { query.setCustomValidity(''); });
         });
 </script>
+<script nonce="<?= $this->escape(is_string($scriptNonce ?? null) ? $scriptNonce : '') ?>"
+    src="<?= $this->escape($metadataScriptPath ?? '') ?>" defer></script>

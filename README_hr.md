@@ -1,6 +1,6 @@
 # Simbioza Workspace Search modul
 
-> Izdanje 0.3.2 poslužuje stilove pretrage kao CSS kako bi preglednici pravilno primijenili temu i padajuće izbornike sa skrolanjem.
+> Izdanje 0.3.4 dodaje filtre oznaka, strukturiranih svojstava i statusa objave prema ovlastima, straničene opcije i uklanjanje aktivnih filtara. Pogledajte [bilješke izdanja](docs/release-0.3.4_hr.md).
 
 [Engleska verzija](README.md)
 
@@ -32,7 +32,7 @@ ovisnosti, a ne opcionalni prijedlozi.
 ## Instalacija
 
 ```bash
-composer require aaieduhr/simbioza-module-workspace-search:^0.3.0
+composer require aaieduhr/simbioza-module-workspace-search:^0.3.4
 vendor/bin/hph workspace-search:install-migration
 vendor/bin/hph orm-migrate:up
 vendor/bin/hph workspace-search:rebuild
@@ -50,7 +50,7 @@ bazne putanje aplikacije.
 - sanitizirani obični tekst točne objavljene Editor verzije;
 - autor objave;
 - traženi jezik uz fallback na zadani jezik sitea;
-- opcionalni filtri područja i datuma objave.
+- opcionalni filtri područja, autora, datuma objave, oznake, strukturiranog svojstva i statusa objave.
 
 Puna forma pretrage prikazuje obična područja koja su vidljiva trenutačnom
 posjetitelju. Sva vidljiva osobna područja objedinjena su u jednu mogućnost
@@ -64,8 +64,10 @@ Primjer `+dio +drugi +"Dio 2"` pronalazi samo sadržaj koji sadrži riječ `dio`
 riječ `drugi` i frazu `Dio 2`. Ista je uputa prikazana ispod obje forme za
 pretragu.
 
-Nacrti, arhivirani workflowi, obrisane stranice i nedostupni potomci nikada se
-ne vraćaju. Gost dobiva samo javno dostupne stranice, uključujući objavljenu
+Tekst neobjavljenih nacrta, arhivirani workflowi, obrisane stranice i nedostupni
+potomci nikada se ne pretražuju. Ovlašteni urednici mogu filtrirati nacrte i
+izmjene na pregledu već objavljenih stranica; čitatelji vide samo efektivno
+objavljeno stanje. Gost dobiva samo javno dostupne stranice, uključujući objavljenu
 stranicu s izričitom javnom iznimkom u privatnom Području. Iznimka ne otkriva
 skrivene roditelje, susjedne stranice ni njihov sadržaj. Prijavljeni web korisnik i vlasnik
 API ključa dobivaju samo sadržaj dopušten efektivnim Workspace i naslijeđenim

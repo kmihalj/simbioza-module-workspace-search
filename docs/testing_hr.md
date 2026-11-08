@@ -12,6 +12,18 @@ Unit/integracijski testovi provjeravaju prijenosnu migraciju, indeksiranje točn
 objavljene verzije, jezični fallback, javni ACL za gosta, naslijeđeni ACL
 prijavljenog korisnika, straničenje, isječke i registraciju menija.
 
+Regresije metapodataka koriste stvarne SQLite Workspace/Auth tablice i izvorni
+ACL: privatne oznake, ključevi i vrijednosti svojstava ne pojavljuju se u
+rezultatima i biračima gosta, a uredničko stanje nacrta/pregleda ne mijenja
+brojeve čitatelja. Testovi pokrivaju AND kombinacije, pune točne vrijednosti,
+doslovne zamjenske znakove, fallback i trenutačne promjene objave/ovlasti.
+Za 55 različitih oznaka birač vraća 25/25/5 opcija kroz tri stranice. Promatrač
+upita potvrđuje jedan ograničen SELECT metapodataka (`LIMIT 26`) i najviše 20
+SQL upita za prvu stranicu, bez upita metapodataka po svakom čvoru. Testovi
+stvarno iscrtanih predložaka provjeravaju uklanjanje filtara, čuvanje URL-a i
+jezika, escaping i nazive ovisnih kontrola. Te provjere ulaze u
+`composer on-commit`; ne trebaju preglednik ni aplikacijske podatke.
+
 ## Stvarna aplikacijska matrica
 
 Iz HFCleana pokrenite izolirani skup koji kreira privremene baze i ne mijenja

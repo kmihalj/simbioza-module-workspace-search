@@ -10,6 +10,7 @@ use AaiEduHr\HeartPhrameModuleEditorHtml\Service\EditorDocumentVersion;
 use AaiEduHr\HeartPhrameModuleEditorHtml\Service\EditorPublishedVersionProviderInterface;
 use AaiEduHr\HeartPhrameModuleOrm\Database\Database;
 use AaiEduHr\HeartPhrameModuleOrm\Database\Migration\ReversibleMigrationInterface;
+use AaiEduHr\HeartPhrameModuleOrm\Database\QueryExecuted;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceAccessService;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceConfig;
 use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceRepository;
@@ -17,6 +18,7 @@ use AaiEduHr\SimbiozaModuleWorkspace\Service\WorkspaceWorkflowService;
 use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchConfig;
 use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchEditorBridge;
 use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchIndexer;
+use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchMetadataFilters;
 use AaiEduHr\SimbiozaModuleWorkspaceSearch\Service\WorkspaceSearchService;
 use HeartPhrame\Authn\AuthnHandlerInterface;
 use HeartPhrame\Config\Config;
@@ -30,11 +32,14 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(WorkspaceSearchConfig::class)]
 #[UsesClass(WorkspaceSearchEditorBridge::class)]
 #[UsesClass(WorkspaceSearchIndexer::class)]
+#[UsesClass(WorkspaceSearchMetadataFilters::class)]
 final class WorkspaceSearchServiceTest extends TestCase
 {
     private Database $database;
 
     private WorkspaceRepository $repository;
+
+    private WorkspaceAccessService $access;
 
     private WorkspaceSearchService $search;
 
@@ -110,6 +115,8 @@ final class WorkspaceSearchServiceTest extends TestCase
             $workspaceRoot,
         );
         $access = new WorkspaceAccessService($this->repository, $this->authnHandler(), $workspaceConfig, $workflow);
+        $this->access = $access;
+
         $provider = new class ($this->versions) implements EditorPublishedVersionProviderInterface {
             /** @param array<string, EditorDocumentVersion> $versions */
             public function __construct(private array &$versions)
@@ -589,6 +596,187 @@ final class WorkspaceSearchServiceTest extends TestCase
         $this->assertSame([], $missing['items']);
         $this->assertSame(0, $missing['total']);
         $this->assertSame(0, $empty['total']);
+    }
+
+    /**
+     * EN: Filters and lookup values use the same canonical page and Workspace ACL.
+     *
+     * HR: Filtri i vrijednosti birača koriste iste izvorne ovlasti stranice i područja.
+     */
+    public function testMetadataFiltersAndLookupNeverExposeRestrictedValues(): void
+    {
+        $public = $this->workspace('Public', 'public-metadata', 'public');
+        $publicNode = $this->page($public, 'Visible metadata', 'visible-metadata', 'Shared content');
+        $private = $this->workspace('Private', 'private-metadata', 'restricted');
+        $this->repository->replaceWorkspaceAcl((int)$private['id'], ['user' => [2 => ['can_view' => true]]]);
+        $privateNode = $this->page($private, 'Private metadata', 'private-metadata', 'Shared content');
+        $this->repository->replaceNodeLabels((int)$publicNode['id'], ['visible', 'common']);
+        $this->repository->replaceNodeLabels((int)$privateNode['id'], ['secret-only', 'common']);
+        $this->repository->replaceNodeProperties((int)$publicNode['id'], [
+            ['key' => 'owner', 'label' => 'Owner', 'type' => 'text', 'value' => 'Public value'],
+        ]);
+        $this->repository->replaceNodeProperties((int)$privateNode['id'], [
+            ['key' => 'secret-key', 'label' => 'Secret key', 'type' => 'text', 'value' => 'Private value'],
+        ]);
+        $this->indexer->rebuild();
+
+        $guest = $this->search->search('', 'hr', ['label' => 'secret-only']);
+        $this->assertSame(0, $guest['total']);
+        $this->assertSame([], $guest['items']);
+        $allowed = $this->search->search('', 'hr', ['label' => 'secret-only'], ['id' => 2, 'is_admin' => false]);
+        $this->assertSame(1, $allowed['total']);
+        $this->assertSame((int)$privateNode['id'], $allowed['items'][0]['node_id']);
+        $combined = $this->search->search('', 'hr', [
+            'label' => 'visible', 'property_key' => 'owner', 'property_value' => 'Public value',
+        ]);
+        $this->assertSame(1, $combined['total']);
+        $this->assertSame((int)$publicNode['id'], $combined['items'][0]['node_id']);
+        $this->assertSame(0, $this->search->search('', 'hr', ['property_key' => 'secret-key'])['total']);
+        $this->assertSame(0, $this->search->search('', 'hr', ['property_value' => 'Public value'])['total']);
+        $this->assertSame(0, $this->search->search('', 'hr', ['label' => ['visible']])['total']);
+        $labels = $this->search->metadataLookupPage('labels', '', 'hr');
+        $this->assertSame(['common', 'visible'], array_column($labels['items'], 'id'));
+        $properties = $this->search->metadataLookupPage('properties', '', 'hr');
+        $this->assertSame([['id' => 'owner', 'label' => 'Owner']], $properties['items']);
+        $missingValues = $this->search->metadataLookupPage('values', '', 'hr', ['property_key' => 'secret-key']);
+        $this->assertSame([], $missingValues['items']);
+        $privateValues = $this->search->metadataLookupPage(
+            'values',
+            '',
+            'hr',
+            ['property_key' => 'secret-key'],
+            ['id' => 2, 'is_admin' => false],
+        );
+        $this->assertSame([['id' => 'Private value', 'label' => 'Private value']], $privateValues['items']);
+        $scoped = $this->search->metadataLookupPage('labels', '', 'hr', ['workspaces' => ['private-metadata']]);
+        $this->assertSame([], $scoped['items']);
+    }
+
+    /**
+     * EN: Actual draft/review state is available only to editors; reader counts always describe publications.
+     *
+     * HR: Stvarno stanje nacrta/pregleda dostupno je samo urednicima; brojevi čitatelja uvijek opisuju objave.
+     */
+    public function testWorkflowFilterPreservesPublishedScopeAndHidesEditorialStateFromReaders(): void
+    {
+        $workspace = $this->workspace('Workflow', 'workflow-filters', 'public');
+        $review = $this->page($workspace, 'Published with review', 'review-page', 'Published body');
+        $published = $this->page($workspace, 'Published', 'published-page', 'Published body');
+        $unpublished = $this->page($workspace, 'Never published', 'unpublished-page', 'Draft secret');
+        $this->repository->saveNodeWorkflow((int)$review['id'], 'hr', [
+            'status' => 'in_review', 'current_version_number' => 2, 'published_version_number' => 1,
+        ], 1);
+        $this->repository->saveNodeWorkflow((int)$unpublished['id'], 'hr', [
+            'status' => 'draft', 'current_version_number' => 1, 'published_version_number' => 0,
+        ], 1);
+        $this->indexer->rebuild();
+        $this->assertSame(2, $this->search->search('', 'hr', ['workflow' => 'published'])['total']);
+        $this->assertSame(0, $this->search->search('', 'hr', ['workflow' => 'in_review'])['total']);
+        $this->assertSame(0, $this->search->search('', 'hr', ['workflow' => 'draft'])['total']);
+        $editor = ['id' => 1, 'is_admin' => true];
+        $filtered = $this->search->search('', 'en', ['workflow' => 'in_review'], $editor);
+        $this->assertSame(1, $filtered['total']);
+        $this->assertSame((int)$review['id'], $filtered['items'][0]['node_id']);
+        $this->assertSame('hr', $filtered['items'][0]['language']);
+        $publishedResult = $this->search->search('', 'hr', ['workflow' => 'published'], $editor);
+        $this->assertSame(1, $publishedResult['total']);
+        $this->assertSame((int)$published['id'], $publishedResult['items'][0]['node_id']);
+        $this->assertSame(0, $this->search->search('', 'hr', ['workflow' => 'draft'], $editor)['total']);
+        $this->assertSame(0, $this->search->search('', 'hr', ['workflow' => 'archived'], $editor)['total']);
+        $this->assertSame(0, $this->search->search('', 'hr', ['workflow' => 'unknown'], $editor)['total']);
+    }
+
+    /**
+     * EN: Picker pagination is performed in SQL and remains one metadata query for a large visible tree.
+     *
+     * HR: Birač straniči u SQL-u i zadržava jedan upit metapodataka i za veliko vidljivo stablo.
+     */
+    public function testMetadataLookupIsServerPagedAndHasNoPerNodeQueries(): void
+    {
+        $workspace = $this->workspace('Many metadata values', 'many-metadata', 'public');
+        for ($number = 1; $number <= 55; ++$number) {
+            $node = $this->page($workspace, 'Page ' . $number, 'metadata-page-' . $number, 'Published body');
+            $this->repository->replaceNodeLabels((int)$node['id'], [sprintf('tag-%03d', $number)]);
+        }
+
+        $queries = [];
+        $this->database->listen(static function (QueryExecuted $query) use (&$queries): void {
+            $queries[] = $query->sql;
+        });
+        $first = $this->search->metadataLookupPage('labels', 'tag-', 'hr');
+        $this->assertCount(25, $first['items']);
+        $this->assertTrue($first['hasMore']);
+        $metadataQueries = array_values(array_filter(
+            $queries,
+            static fn(string $sql): bool => str_contains($sql, 'workspace_node_labels'),
+        ));
+        $this->assertCount(1, $metadataQueries);
+        $this->assertStringContainsString('LIMIT 26 OFFSET 0', $metadataQueries[0]);
+        $this->assertLessThanOrEqual(20, count($queries));
+        $second = $this->search->metadataLookupPage('labels', 'tag-', 'hr', [], null, 2);
+        $third = $this->search->metadataLookupPage('labels', 'tag-', 'hr', [], null, 3);
+        $this->assertCount(25, $second['items']);
+        $this->assertTrue($second['hasMore']);
+        $this->assertCount(5, $third['items']);
+        $this->assertFalse($third['hasMore']);
+        $this->assertSame([], array_intersect(
+            array_column($first['items'], 'id'),
+            array_column($second['items'], 'id'),
+        ));
+        $this->database->forgetQueryListeners();
+    }
+
+    /**
+     * EN: Exact values, literal lookup wildcards, and current publication and ACL changes need no metadata rebuild.
+     *
+     * HR: Točne vrijednosti, doslovni zamjenski znakovi i izmjene objave/ovlasti ne traže obnovu metapodataka.
+     */
+    public function testMetadataValuesStayExactAndLookupsFollowLiveVisibility(): void
+    {
+        $workspace = $this->workspace('Live metadata', 'live-metadata', 'public');
+        $node = $this->page($workspace, 'Metadata', 'live-values', 'Published body');
+        $longValue = str_repeat('Ž & <quoted> ', 150) . 'end';
+        $this->repository->replaceNodeLabels((int)$node['id'], ['live']);
+        $this->repository->replaceNodeProperties((int)$node['id'], [
+            ['key' => 'exact', 'label' => 'Exact value', 'type' => 'text', 'value' => $longValue],
+            ['key' => 'wild', 'label' => 'Literal value', 'type' => 'text', 'value' => '100%_!'],
+            ['key' => 'zero', 'label' => 'Zero', 'type' => 'text', 'value' => '0'],
+        ]);
+        $this->indexer->rebuild();
+        $values = $this->search->metadataLookupPage('values', '', 'hr', ['property_key' => 'exact']);
+        $this->assertSame($longValue, $values['items'][0]['id']);
+        $unicodeValues = $this->search->metadataLookupPage('values', 'ž &', 'hr', ['property_key' => 'exact']);
+        $this->assertSame($longValue, $unicodeValues['items'][0]['id']);
+        $this->assertSame(1, $this->search->search('', 'hr', [
+            'property_key' => 'exact', 'property_value' => $longValue,
+        ])['total']);
+        $this->assertSame(0, $this->search->search('', 'hr', [
+            'property_key' => 'exact', 'property_value' => mb_substr($longValue, 0, 100),
+        ])['total']);
+        $literal = $this->search->metadataLookupPage('values', '%_!', 'hr', ['property_key' => 'wild']);
+        $this->assertSame(['100%_!'], array_column($literal['items'], 'id'));
+        $zeros = $this->search->metadataLookupPage('values', '', 'hr', ['property_key' => 'zero']);
+        $this->assertSame(['0'], array_column($zeros['items'], 'id'));
+        $this->assertSame(0, $this->search->search('', 'hr', [
+            'property_key' => 'exact', 'property_value' => mb_strtolower($longValue),
+        ])['total']);
+        $this->repository->saveNodeWorkflow((int)$node['id'], 'hr', [
+            'status' => 'draft', 'current_version_number' => 1, 'published_version_number' => 0,
+        ], 1);
+        $editor = ['id' => 1, 'is_admin' => true];
+        $this->assertSame([], $this->search->metadataLookupPage('labels', '', 'hr', [], $editor)['items']);
+        $this->assertSame(0, $this->search->search('', 'hr', ['label' => 'live'], $editor)['total']);
+        $this->repository->saveNodeWorkflow((int)$node['id'], 'hr', [
+            'status' => 'published', 'current_version_number' => 1, 'published_version_number' => 1,
+        ], 1);
+        $this->repository->replaceWorkspaceAcl((int)$workspace['id'], ['user' => [2 => ['can_view' => true]]]);
+        $this->repository->saveWorkspace([
+            ...$workspace, 'visibility' => 'restricted',
+        ], 1);
+        $this->access->clearRequestCache();
+        $this->assertSame([], $this->search->metadataLookupPage('labels', '', 'hr')['items']);
+        $allowed = $this->search->metadataLookupPage('labels', '', 'hr', [], ['id' => 2, 'is_admin' => false]);
+        $this->assertSame(['live'], array_column($allowed['items'], 'id'));
     }
 
     /**

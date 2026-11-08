@@ -92,6 +92,7 @@ final readonly class WorkspaceSearchController
         'result' => $result,
         'minimumQueryLength' => $this->config->minimumQueryLength(),
         'assetsCssPath' => $this->path('workspace-search.assets.css', '/search/assets.css'),
+        'metadataScriptPath' => $this->path('workspace-search.assets.metadata', '/search/metadata.js'),
         'searchPath' => $this->path('workspace-search.index', '/search'),
         'authorLookupPath' => is_array($user)
             ? $this->path('workspace-search.lookup.authors', '/search/lookups/authors')
@@ -99,6 +100,23 @@ final readonly class WorkspaceSearchController
         'selectedAuthorLabel' => is_array($selectedAuthor)
             ? $this->userLabel($selectedAuthor, $authorId)
             : '',
+        'metadataLookupPaths' => [
+            'label' => $this->path(
+                'workspace-search.lookup.metadata',
+                '/search/lookups/metadata/labels',
+                ['kind' => 'labels'],
+            ),
+            'property_key' => $this->path(
+                'workspace-search.lookup.metadata',
+                '/search/lookups/metadata/properties',
+                ['kind' => 'properties'],
+            ),
+            'property_value' => $this->path(
+                'workspace-search.lookup.metadata',
+                '/search/lookups/metadata/values',
+                ['kind' => 'values'],
+            ),
+        ],
         'paginationQuery' => $this->paginationQuery($query),
         ]);
     }
@@ -122,6 +140,30 @@ final readonly class WorkspaceSearchController
         return $this->responses->json([
             'ok' => true,
             ...$this->users->userLookupPage($search, $page, 25, [], $language),
+        ], 200, ['Cache-Control' => 'no-store']);
+    }
+
+    /**
+     * EN: Returns a server-paged metadata picker restricted to the current actor's readable publications.
+     *
+     * HR: Vraća serverski straničen birač metapodataka ograničen na čitljive objave aktualnog korisnika.
+     */
+    public function metadata(ServerRequestInterface $request): ResponseInterface
+    {
+        $query = $this->stringKeyArray($request->getQueryParams());
+        $kind = $this->string($request->getAttribute('kind'));
+        $page = is_numeric($query['page'] ?? null) ? max(1, (int)$query['page']) : 1;
+
+        return $this->responses->json([
+            'ok' => true,
+            ...$this->search->metadataLookupPage(
+                $kind,
+                $this->string($query['q'] ?? ''),
+                $this->language($query['lang'] ?? $this->translator->getLocale()),
+                $query,
+                $this->access->currentUser(),
+                $page,
+            ),
         ], 200, ['Cache-Control' => 'no-store']);
     }
 
@@ -161,6 +203,21 @@ final readonly class WorkspaceSearchController
         return $this->responses->text(is_string($css) ? $css : '', headers: [
         'Cache-Control' => 'public, max-age=300',
         ], contentType: 'text/css; charset=utf-8');
+    }
+
+    /**
+     * EN: Serves the small metadata picker enhancement as a cacheable static asset.
+     *
+     * HR: Isporučuje malu nadogradnju birača metapodataka kao predmemorirani statički resurs.
+     */
+    public function metadataScript(): ResponseInterface
+    {
+        $path = dirname(__DIR__, 2) . '/resources/assets/workspace-search-metadata.js';
+        $script = is_file($path) ? file_get_contents($path) : '';
+
+        return $this->responses->text(is_string($script) ? $script : '', headers: [
+            'Cache-Control' => 'public, max-age=300',
+        ], contentType: 'application/javascript; charset=utf-8');
     }
 
     /**
@@ -285,11 +342,13 @@ final readonly class WorkspaceSearchController
      * EN: Generates a path with the application base directory and a safe fallback.
      *
      * HR: Generira putanju s baznim direktorijem aplikacije i sigurnim fallbackom.
+     *
+     * @param array<string,string> $parameters
      */
-    private function path(string $route, string $fallback): string
+    private function path(string $route, string $fallback, array $parameters = []): string
     {
         try {
-            return $this->urls->getPathFor($route);
+            return $this->urls->getPathFor($route, $parameters);
         } catch (\Throwable) {
             return rtrim($this->urls->getBasePath(), '/') . $fallback;
         }

@@ -28,10 +28,61 @@ Repeat `workspaces[]` to select multiple Workspaces. The special values
 Workspaces visible to the actor. The legacy single `workspace` parameter remains
 supported.
 
-An empty search can browse one selected Workspace or a narrowed author/date
-filter. Multiple selected Workspace choices require a search term. A query
+An empty search can browse one selected Workspace or a set narrowed by an
+author, date, label, property, or publication status. Multiple selected Workspace choices require a search term. A query
 shorter than `minimum_query_length` (default 2 characters) is not executed.
 Dates and sorting still apply to the same ACL-filtered result set.
+
+### Labels, structured properties, and publication status
+
+The full search form lets you select existing metadata; it does not create or
+change page metadata. The same parameters work on `/search` and the HTTP API:
+
+| Parameter | Meaning |
+| --- | --- |
+| `label` | One exact existing page label. |
+| `property_key` | One existing structured-property key; without a value, any page containing that property matches. |
+| `property_value` | Exact stored value for the selected `property_key`; a value without a key returns no results. |
+| `workflow` | `published`, `draft`, or `in_review`. An empty value accepts all available states. |
+
+For example, `/search?lang=en&label=conference&property_key=year&property_value=2026`
+lists published pages with both the label and the exact property value. Every
+selected criterion is combined with AND. Filtering by page metadata omits bare
+Workspace cards. All selections remain in the URL, including when sorting or
+changing result pages. Above the results, remove an individual filter using its
+chip or choose **Clear filters**; clearing preserves the search term and locale.
+Removing a property key also removes its dependent value.
+
+Search still covers published versions only. `draft` and `in_review` mean
+unpublished changes to an already published page, available only to actors who
+can edit, publish, or manage that page. For readers, a readable published page
+counts as `published` even if an editor has unpublished changes. Draft-only and
+archived pages are excluded. Counts, lookup options, and API responses never
+reveal a hidden page or its editorial state. Locale fallback follows the
+ordinary search rules.
+
+Each metadata picker loads on focus/open and searches on the server. These
+same-origin JSON routes return at most 25 authorized options and `hasMore`,
+without a total count:
+
+```text
+/search/lookups/metadata/labels?lang=en&q=conf&page=1
+/search/lookups/metadata/properties?lang=en&q=year&page=1
+/search/lookups/metadata/values?lang=en&property_key=year&q=2026&page=1
+```
+
+Repeat `workspaces[]` to limit options to the selected visible Workspaces;
+`__all__` and `__personal__` work here too. `q` matches part of the label,
+property key/display label, or value; `%` and `_` are literal input. **Load more**
+requests the next server page. Property values are loaded only after selecting
+a property key. Guests see options from public readable pages only. Requests
+use the current actor's Workspace and inherited page ACL, and the response uses
+`Cache-Control: no-store`. These are web lookup routes, not API-key endpoints;
+the protected search API below accepts the same four filtering parameters.
+
+Metadata is read from Workspace's existing tables with SQL predicates; this
+feature needs no extra migration or metadata reindex. The derived published
+content index and its existing maintenance commands remain unchanged.
 
 ## HTTP API
 

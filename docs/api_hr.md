@@ -27,10 +27,62 @@ Parametar `workspaces[]` može se ponoviti za više područja. Posebne vrijednos
 `__all__` i `__personal__` znače sva vidljiva odnosno sva korisniku vidljiva
 osobna područja. Stari jednokratni parametar `workspace` ostaje podržan.
 
-Prazna pretraga može pregledavati jedno odabrano Područje ili skup sužen
-filtrom autora/datuma. Više odabranih Područja traži pojam pretrage. Pojam
+Prazna pretraga može pregledavati jedno odabrano područje ili skup sužen
+autorom, datumom, oznakom, svojstvom ili statusom objave. Više odabranih područja traži pojam pretrage. Pojam
 kraći od `minimum_query_length` (zadano 2 znaka) ne izvršava se. Datumi i
 redoslijed primjenjuju se na isti skup rezultata filtriran ovlastima.
+
+### Oznake, strukturirana svojstva i status objave
+
+Puna forma pretrage omogućuje odabir postojećih metapodataka; ne stvara niti
+mijenja metapodatke stranica. Isti parametri vrijede za `/search` i HTTP API:
+
+| Parametar | Značenje |
+| --- | --- |
+| `label` | Jedna točna postojeća oznaka stranice. |
+| `property_key` | Ključ postojećeg strukturiranog svojstva; bez vrijednosti pronalaze se sve stranice koje imaju to svojstvo. |
+| `property_value` | Točna spremljena vrijednost odabranog `property_key`; vrijednost bez ključa ne vraća rezultate. |
+| `workflow` | `published`, `draft` ili `in_review`. Prazna vrijednost prihvaća sve dostupne statuse. |
+
+Primjer `/search?lang=hr&label=konferencija&property_key=godina&property_value=2026`
+prikazuje objavljene stranice s odabranom oznakom i točnom vrijednošću svojstva.
+Svaki odabrani kriterij dodatno sužava skup (AND). Kod filtriranja metapodataka
+stranice ne prikazuju se samostalne kartice područja. Odabir ostaje u URL-u i
+pri sortiranju ili promjeni stranice rezultata. Iznad rezultata pojedini filtar
+uklonite njegovom oznakom ili odaberite **Očisti filtre**; čišćenje zadržava
+traženi pojam i jezik. Uklanjanje ključa svojstva uklanja i ovisnu vrijednost.
+
+Pretražuju se samo objavljene verzije. `draft` i `in_review` označavaju
+neobjavljene izmjene već objavljene stranice, dostupne samo korisniku koji smije
+uređivati, objavljivati ili upravljati tom stranicom. Čitatelju se čitljiva
+objavljena stranica računa kao `published` i kada urednik ima neobjavljene izmjene.
+Stranice koje nikada nisu objavljene i arhivirane stranice izostavljene su.
+Brojevi rezultata, opcije birača i API odgovori ne otkrivaju skrivenu stranicu
+ni njezino uredničko stanje. Jezični fallback slijedi obična pravila pretrage.
+
+Birač učitava opcije tek pri fokusu ili otvaranju, a pretražuje ih poslužitelj.
+Ove JSON rute istog izvora vraćaju najviše 25 dopuštenih opcija i `hasMore`,
+bez ukupnog broja:
+
+```text
+/search/lookups/metadata/labels?lang=hr&q=konf&page=1
+/search/lookups/metadata/properties?lang=hr&q=godina&page=1
+/search/lookups/metadata/values?lang=hr&property_key=godina&q=2026&page=1
+```
+
+Ponovite `workspaces[]` za ograničenje opcija na odabrana vidljiva područja;
+ovdje vrijede i `__all__` te `__personal__`. `q` traži dio oznake,
+ključa/prikaznog naziva svojstva ili vrijednosti; `%` i `_` doslovni su znakovi.
+**Učitaj još** dohvaća sljedeću stranicu s poslužitelja. Vrijednosti svojstava
+dohvaćaju se tek nakon odabira ključa svojstva. Gost vidi samo opcije javnih
+čitljivih stranica. Zahtjev koristi aktualne ovlasti područja i naslijeđene
+ovlasti stranica, a odgovor ima `Cache-Control: no-store`. To su web rute birača,
+ne rute za API ključeve; zaštićena API pretraga u nastavku prihvaća ista četiri
+parametra filtara.
+
+Metapodaci se čitaju iz postojećih Workspace tablica SQL uvjetima. Dodatna
+migracija ni obnova indeksa metapodataka nisu potrebne. Izvedeni indeks
+objavljenog sadržaja i njegove postojeće naredbe održavanja ostaju isti.
 
 ## HTTP API
 
